@@ -1,13 +1,17 @@
-import { useState, useCallback } from "react";
-import type { TopicWithNews, NewsArticle } from "../types/news";
+import { useState, useCallback, useMemo } from "react";
+import type { TopicWithNews } from "../types/news";
 import { newsService } from "../services/newsApi";
 import { isApiConfigured } from "../config/env";
+import { getMockNewsForTopic } from "../data/mockNews";
 
 interface UseNewsReturn {
   topicsWithNews: TopicWithNews[];
   isLoading: boolean;
   error: string | null;
-  fetchNews: (topics: Array<{ label: string; topic: string }>) => Promise<void>;
+  fetchNews: (
+    topics: Array<{ label: string; topic: string }>,
+    useMock?: boolean
+  ) => Promise<void>;
   clearNews: () => void;
   isApiKeyConfigured: boolean;
 }
@@ -18,72 +22,142 @@ export const useNews = (): UseNewsReturn => {
   const [error, setError] = useState<string | null>(null);
 
   const fetchNews = useCallback(
-    async (topics: Array<{ label: string; topic: string }>) => {
-      console.log("🎯 useNews: Starting fetchNews with topics:", topics);
+    async (
+      topics: Array<{ label: string; topic: string }>,
+      useMock = false
+    ) => {
+      console.log(
+        "🔄 useNews - fetchNews called with topics:",
+        topics,
+        "useMock:",
+        useMock
+      );
 
-      if (!isApiConfigured()) {
-        const errorMsg =
-          "API key not configured. Please add VITE_NEWSDATA_API_KEY to your environment variables.";
-        console.error("❌ useNews:", errorMsg);
-        setError(errorMsg);
+      // Se usar mock, não precisamos verificar a API key
+      if (!useMock && !isApiConfigured()) {
+        console.error("❌ API key not configured");
+        setError(
+          "API key not configured. Please check your environment variables."
+        );
         return;
       }
 
-      console.log("✅ useNews: API is configured, starting search...");
       setIsLoading(true);
       setError(null);
 
       try {
-        // Inicializar estado de loading para cada tópico
-        const initialTopics: TopicWithNews[] = topics.map(
-          ({ label, topic }) => ({
-            label,
-            topic,
-            articles: [],
-            isLoading: true,
-          })
-        );
+        console.log("🚀 Starting news fetch for topics:", topics);
 
-        console.log(
-          "🔄 useNews: Setting initial loading state:",
-          initialTopics
-        );
-        setTopicsWithNews(initialTopics);
+        let results;
 
-        // Buscar notícias para todos os tópicos
-        console.log("🚀 useNews: Calling newsService.searchMultipleTopics...");
-        const results = await newsService.searchMultipleTopics(topics);
+        if (useMock) {
+          console.log("🎭 Using mock data instead of API");
+          // Usar dados mock
+          results = topics.map(({ label, topic }) => {
+            const mockArticles = getMockNewsForTopic(topic);
+            console.log(
+              `🎭 Mock data for ${topic}:`,
+              mockArticles.length,
+              "articles"
+            );
 
-        console.log("📦 useNews: Raw results from API:", results);
+            return {
+              label,
+              topic,
+              articles: mockArticles,
+            };
+          });
+        } else {
+          // Usar API real
+          results = await newsService.searchMultipleTopics(topics);
+        }
 
-        // Atualizar estado com os resultados
-        const updatedTopics: TopicWithNews[] = results.map(
-          ({ label, topic, articles }) => ({
-            label,
-            topic,
-            articles: articles as NewsArticle[],
-            isLoading: false,
-          })
-        );
+        console.log("📊 useNews - Raw results:", results);
 
-        console.log("✅ useNews: Final updated topics:", updatedTopics);
-        setTopicsWithNews(updatedTopics);
-      } catch (err) {
-        const errorMessage =
-          err instanceof Error ? err.message : "Failed to fetch news";
-        console.error("❌ useNews: Error occurred:", errorMessage, err);
-        setError(errorMessage);
+        // Log detalhado de cada resultado
+        results.forEach((result, index) => {
+          console.log(`📰 Result ${index + 1} for "${result.label}":`, {
+            label: result.label,
+            topic: result.topic,
+            articlesCount: result.articles?.length || 0,
+            firstArticle: result.articles?.[0]
+              ? {
+                  title: result.articles[0].title,
+                  url: result.articles[0].url,
+                  publishedAt: result.articles[0].publishedAt,
+                  source: result.articles[0].source,
+                  description: result.articles[0].description,
+                  content: result.articles[0].content,
+                }
+              : null,
+          });
+        });
 
-        // Marcar todos os tópicos como com erro
-        setTopicsWithNews((prev) =>
-          prev.map((topic) => ({
-            ...topic,
-            isLoading: false,
-            error: errorMessage,
-          }))
+        // Processar e validar os dados
+        const processedResults = results.map((result) => {
+          console.log(
+            `🔍 Processing articles for ${result.label}:`,
+            result.articles
+          );
+
+          const validArticles = result.articles.map((article) => {
+            console.log("📰 Processing article:", {
+              title: article.title,
+              url: article.url,
+              publishedAt: article.publishedAt,
+              source: article.source,
+            });
+
+            // Verificar se o artigo tem a estrutura correta
+            if (!article || typeof article !== "object") {
+              console.warn("⚠️ Invalid article structure:", article);
+              return {
+                title: "Invalid article",
+                url: "#",
+                publishedAt: new Date().toISOString(),
+                source: { name: "Unknown Source" },
+                description: "Invalid article data",
+              };
+            }
+
+            return {
+              ...article,
+              // Mapear campos corretamente baseado na estrutura da API
+              title: article.title || "No title",
+              url: article.link || article.url || "#", // Usar 'link' da API
+              publishedAt:
+                article.publishedAt ||
+                article.pubDate ||
+                new Date().toISOString(),
+              source: {
+                name:
+                  article.source_name ||
+                  article.source?.name ||
+                  "Unknown Source",
+                url: article.source_url || article.source?.url,
+              },
+              description:
+                article.description ||
+                article.content ||
+                "No description available",
+              image: article.image_url || article.image, // Usar 'image_url' da API
+            };
+          });
+
+          return {
+            ...result,
+            articles: validArticles,
+          };
+        });
+
+        console.log("✅ useNews - Processed results:", processedResults);
+        setTopicsWithNews(processedResults);
+      } catch (error) {
+        console.error("❌ useNews - Error fetching news:", error);
+        setError(
+          error instanceof Error ? error.message : "Failed to fetch news"
         );
       } finally {
-        console.log("🏁 useNews: Search completed, setting loading to false");
         setIsLoading(false);
       }
     },
@@ -96,12 +170,16 @@ export const useNews = (): UseNewsReturn => {
     setError(null);
   }, []);
 
+  const isApiKeyConfigured = useMemo(() => {
+    return isApiConfigured();
+  }, []);
+
   return {
     topicsWithNews,
     isLoading,
     error,
     fetchNews,
     clearNews,
-    isApiKeyConfigured: isApiConfigured(),
+    isApiKeyConfigured,
   };
 };

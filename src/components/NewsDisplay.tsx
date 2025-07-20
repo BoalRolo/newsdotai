@@ -9,19 +9,47 @@ export default function NewsDisplay({
   topicsWithNews,
   isDarkMode,
 }: NewsDisplayProps) {
-  if (topicsWithNews.length === 0) {
-    return null;
+  // Debug: Log dos dados recebidos
+  console.log("📰 NewsDisplay - topicsWithNews:", topicsWithNews);
+
+  if (topicsWithNews.length > 0 && topicsWithNews[0].articles.length > 0) {
+    console.log("🔍 Sample article data:", topicsWithNews[0].articles[0]);
+
+    // Log detalhado de cada artigo
+    topicsWithNews[0].articles.forEach((article, index) => {
+      console.log(`📄 Article ${index + 1}:`, {
+        title: article.title,
+        url: article.url,
+        publishedAt: article.publishedAt,
+        source: article.source,
+        description: article.description,
+        content: article.content,
+        image: article.image,
+      });
+    });
   }
 
   const formatDate = (dateString: string) => {
+    if (!dateString) return "No date";
+
     const date = new Date(dateString);
-    return date.toLocaleDateString("pt-PT", {
-      day: "2-digit",
-      month: "2-digit",
-      year: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    });
+
+    // Verificar se a data é válida
+    if (isNaN(date.getTime())) {
+      return "No date";
+    }
+
+    try {
+      return date.toLocaleDateString("pt-PT", {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+      });
+    } catch (error) {
+      return "No date";
+    }
   };
 
   const truncateText = (text: string, maxLength: number) => {
@@ -115,19 +143,20 @@ export default function NewsDisplay({
                   >
                     <div className="flex space-x-4">
                       {/* Imagem da notícia */}
-                      {article.image && article.image.trim() !== "" && (
-                        <div className="flex-shrink-0">
-                          <img
-                            src={article.image}
-                            alt={article.title}
-                            className="w-20 h-20 object-cover rounded-xl"
-                            onError={(e) => {
-                              const target = e.target as HTMLImageElement;
-                              target.style.display = "none";
-                            }}
-                          />
-                        </div>
-                      )}
+                      {(article.image || article.image_url) &&
+                        (article.image || article.image_url)?.trim() !== "" && (
+                          <div className="flex-shrink-0">
+                            <img
+                              src={article.image || article.image_url || ""}
+                              alt={article.title}
+                              className="w-20 h-20 object-cover rounded-xl"
+                              onError={(e) => {
+                                const target = e.target as HTMLImageElement;
+                                target.style.display = "none";
+                              }}
+                            />
+                          </div>
+                        )}
 
                       {/* Conteúdo da notícia */}
                       <div className="flex-1 min-w-0">
@@ -172,31 +201,40 @@ export default function NewsDisplay({
                     </div>
 
                     {/* Link para a notícia */}
-                    <a
-                      href={article.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className={`mt-3 inline-flex items-center text-sm font-medium transition-colors duration-300 ${
-                        isDarkMode
-                          ? "text-blue-400 hover:text-blue-300"
-                          : "text-blue-600 hover:text-blue-500"
-                      }`}
-                    >
-                      Ler mais
-                      <svg
-                        className="w-4 h-4 ml-1"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
+                    {article.url && (
+                      <a
+                        href={article.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className={`mt-3 inline-flex items-center text-sm font-medium transition-colors duration-300 ${
+                          isDarkMode
+                            ? "text-blue-400 hover:text-blue-300"
+                            : "text-blue-600 hover:text-blue-500"
+                        }`}
+                        onClick={(e) => {
+                          console.log("🔗 Clicking link:", article.url);
+                          if (!article.url || article.url.trim() === "") {
+                            e.preventDefault();
+                            console.warn("⚠️ Empty URL, preventing navigation");
+                          }
+                        }}
                       >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
-                        />
-                      </svg>
-                    </a>
+                        Ler mais
+                        <svg
+                          className="w-4 h-4 ml-1"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+                          />
+                        </svg>
+                      </a>
+                    )}
                   </article>
                 ))}
               </div>

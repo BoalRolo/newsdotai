@@ -43,6 +43,13 @@ newsApi.interceptors.response.use(
       totalResults: response.data?.totalResults,
       resultsCount: response.data?.results?.length,
     });
+
+    // Log detalhado da resposta completa
+    console.log(
+      "🔍 FULL API RESPONSE:",
+      JSON.stringify(response.data, null, 2)
+    );
+
     return response;
   },
   (error) => {
@@ -86,6 +93,18 @@ export const newsService = {
         articlesCount: response.data.results?.length || 0,
         status: response.data.status,
       });
+
+      // Debug: Log da estrutura dos dados
+      if (response.data.results && response.data.results.length > 0) {
+        console.log("🔍 Sample article structure:", {
+          title: response.data.results[0].title,
+          url: response.data.results[0].url,
+          publishedAt: response.data.results[0].publishedAt,
+          source: response.data.results[0].source,
+          description: response.data.results[0].description,
+          content: response.data.results[0].content,
+        });
+      }
 
       return response.data;
     } catch (error) {

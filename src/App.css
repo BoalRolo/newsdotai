@@ -1,7 +1,7 @@
 /* Estilos específicos do App podem ser adicionados aqui se necessário */
 
-/* Garantir que toda a aplicação tenha o background correto */
-#root {
+/* Garantir que toda a aplicação tenha o background correto - Dark Mode */
+#root.dark {
   background: linear-gradient(
     135deg,
     #0a0a0f 0%,
@@ -17,9 +17,26 @@
   overflow-x: hidden;
 }
 
-/* Garantir que o body e html tenham o background correto */
-html,
-body {
+/* Light Mode Root */
+#root:not(.dark) {
+  background: linear-gradient(
+    135deg,
+    #f8fafc 0%,
+    #e2e8f0 20%,
+    #cbd5e1 40%,
+    #94a3b8 60%,
+    #64748b 80%,
+    #475569 100%
+  ) !important;
+  background-attachment: fixed !important;
+  min-height: 100vh;
+  width: 100%;
+  overflow-x: hidden;
+}
+
+/* Garantir que o body e html tenham o background correto - Dark Mode */
+html.dark,
+body.dark {
   background: linear-gradient(
     135deg,
     #0a0a0f 0%,
@@ -36,8 +53,27 @@ body {
   overflow-x: hidden;
 }
 
-/* Forçar background em elementos com min-h-screen */
-div[min-h-screen] {
+/* Light Mode body e html */
+html:not(.dark),
+body:not(.dark) {
+  background: linear-gradient(
+    135deg,
+    #f8fafc 0%,
+    #e2e8f0 20%,
+    #cbd5e1 40%,
+    #94a3b8 60%,
+    #64748b 80%,
+    #475569 100%
+  ) !important;
+  background-attachment: fixed !important;
+  min-height: 100vh;
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+}
+
+/* Forçar background em elementos com min-h-screen - Dark Mode */
+div[min-h-screen].dark {
   background: linear-gradient(
     135deg,
     #0a0a0f 0%,
@@ -46,6 +82,20 @@ div[min-h-screen] {
     #0f3460 60%,
     #1e3a8a 80%,
     #0f172a 100%
+  ) !important;
+  background-attachment: fixed !important;
+}
+
+/* Light Mode min-h-screen */
+div[min-h-screen]:not(.dark) {
+  background: linear-gradient(
+    135deg,
+    #f8fafc 0%,
+    #e2e8f0 20%,
+    #cbd5e1 40%,
+    #94a3b8 60%,
+    #64748b 80%,
+    #475569 100%
   ) !important;
   background-attachment: fixed !important;
 }
