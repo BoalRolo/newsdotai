@@ -1,0 +1,146 @@
+@import "tailwindcss";
+
+:root {
+  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Aplicar background em todos os elementos principais */
+* {
+  box-sizing: border-box;
+}
+
+/* Forçar background em todos os elementos HTML */
+html {
+  background: linear-gradient(
+    135deg,
+    #0a0a0f 0%,
+    #1a1a2e 20%,
+    #16213e 40%,
+    #0f3460 60%,
+    #1e3a8a 80%,
+    #0f172a 100%
+  ) !important;
+  background-attachment: fixed !important;
+  min-height: 100vh;
+  height: 100%;
+  overflow-x: hidden;
+  /* Prevenir overscroll */
+  overscroll-behavior: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  min-width: 320px;
+  min-height: 100vh;
+  height: 100%;
+  background: linear-gradient(
+    135deg,
+    #0a0a0f 0%,
+    #1a1a2e 20%,
+    #16213e 40%,
+    #0f3460 60%,
+    #1e3a8a 80%,
+    #0f172a 100%
+  ) !important;
+  background-attachment: fixed !important;
+  overflow-x: hidden;
+  /* Prevenir overscroll */
+  overscroll-behavior: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+#root {
+  min-height: 100vh;
+  height: 100%;
+  background: linear-gradient(
+    135deg,
+    #0a0a0f 0%,
+    #1a1a2e 20%,
+    #16213e 40%,
+    #0f3460 60%,
+    #1e3a8a 80%,
+    #0f172a 100%
+  ) !important;
+  background-attachment: fixed !important;
+  overflow-x: hidden;
+  /* Prevenir overscroll */
+  overscroll-behavior: none;
+}
+
+/* Garantir que qualquer div que ocupe toda a altura tenha o background correto */
+div[min-h-screen] {
+  background: linear-gradient(
+    135deg,
+    #0a0a0f 0%,
+    #1a1a2e 20%,
+    #16213e 40%,
+    #0f3460 60%,
+    #1e3a8a 80%,
+    #0f172a 100%
+  ) !important;
+  background-attachment: fixed !important;
+  /* Prevenir overscroll */
+  overscroll-behavior: none;
+}
+
+/* Resolver problema do scroll branco nos limites */
+html,
+body,
+#root,
+div[min-h-screen] {
+  background: linear-gradient(
+    135deg,
+    #0a0a0f 0%,
+    #1a1a2e 20%,
+    #16213e 40%,
+    #0f3460 60%,
+    #1e3a8a 80%,
+    #0f172a 100%
+  ) !important;
+  background-attachment: fixed !important;
+  background-size: cover !important;
+  background-repeat: no-repeat !important;
+  background-position: center center !important;
+  /* Prevenir overscroll */
+  overscroll-behavior: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Garantir que o viewport tenha o background correto */
+@media screen and (max-width: 100vw) {
+  html,
+  body,
+  #root {
+    background: linear-gradient(
+      135deg,
+      #0a0a0f 0%,
+      #1a1a2e 20%,
+      #16213e 40%,
+      #0f3460 60%,
+      #1e3a8a 80%,
+      #0f172a 100%
+    ) !important;
+    background-attachment: fixed !important;
+    overscroll-behavior: none;
+  }
+}
+
+/* Prevenir overscroll em todos os elementos */
+* {
+  overscroll-behavior: none;
+}
+
+/* Garantir que o body não tenha bounce no scroll */
+body {
+  -webkit-overflow-scrolling: auto;
+  overscroll-behavior-y: none;
+  overscroll-behavior-x: none;
+}
