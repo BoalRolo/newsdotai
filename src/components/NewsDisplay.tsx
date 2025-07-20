@@ -9,26 +9,6 @@ export default function NewsDisplay({
   topicsWithNews,
   isDarkMode,
 }: NewsDisplayProps) {
-  // Debug: Log dos dados recebidos
-  console.log("📰 NewsDisplay - topicsWithNews:", topicsWithNews);
-
-  if (topicsWithNews.length > 0 && topicsWithNews[0].articles.length > 0) {
-    console.log("🔍 Sample article data:", topicsWithNews[0].articles[0]);
-
-    // Log detalhado de cada artigo
-    topicsWithNews[0].articles.forEach((article, index) => {
-      console.log(`📄 Article ${index + 1}:`, {
-        title: article.title,
-        url: article.url,
-        publishedAt: article.publishedAt,
-        source: article.source,
-        description: article.description,
-        content: article.content,
-        image: article.image,
-      });
-    });
-  }
-
   const formatDate = (dateString: string) => {
     if (!dateString) return "No date";
 

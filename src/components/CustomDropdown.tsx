@@ -43,9 +43,7 @@ export default function CustomDropdown({
   }, []);
 
   const handleToggleDropdown = () => {
-    console.log("🔘 Toggle dropdown clicked, current state:", isOpen);
     setIsOpen(!isOpen);
-    console.log("🔘 New state will be:", !isOpen);
   };
 
   const handleKeyDown = (event: React.KeyboardEvent) => {
@@ -137,7 +135,6 @@ export default function CustomDropdown({
                 onClick={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
-                  console.log("🎯 Dropdown option clicked:", option.value);
                   onChange(option.value);
                   setIsOpen(false);
                   setHighlightedIndex(-1);

@@ -44,25 +44,16 @@ export default function LabelTopicManager() {
   };
 
   const handleAdd = () => {
-    console.log("🔘 ADD TOPIC clicked");
-    console.log("📝 Label:", label);
-    console.log("🏷️ Topic:", topic);
-    console.log("✅ Label valid:", !!label);
-    console.log("✅ Topic valid:", !!topic);
-
     if (!label || !topic) return;
 
-    // Check if topic already exists
-    const topicExists = items.some(
-      (item) =>
-        item.label.toLowerCase() === label.toLowerCase() ||
-        item.topic.toLowerCase() === topic.toLowerCase()
+    // Check if label already exists
+    const labelExists = items.some(
+      (item) => item.label.toLowerCase() === label.toLowerCase()
     );
 
-    if (topicExists) {
-      console.log("❌ Topic already exists");
+    if (labelExists) {
       setErrorMessage(
-        "This topic already exists! Please use a different label."
+        "This label already exists! Please use a different label."
       );
       // Clear error message after 3 seconds
       setTimeout(() => setErrorMessage(""), 3000);
@@ -71,21 +62,10 @@ export default function LabelTopicManager() {
 
     setItems([...items, { label, topic }]);
     setLabel("");
-    // Keep the topic selected for adding multiple topics with same category
-    // setTopic("");
   };
 
   const handleFetchNews = async () => {
-    console.log("🔘 Button clicked: handleFetchNews");
-    console.log("📋 Current items:", items);
-    console.log("🎭 Use mock data:", useMockData);
-
-    if (items.length === 0) {
-      console.log("❌ No items to search");
-      return;
-    }
-
-    console.log("🚀 Starting news fetch...");
+    if (items.length === 0) return;
     await fetchNews(items, useMockData);
   };
 

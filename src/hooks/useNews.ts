@@ -26,16 +26,8 @@ export const useNews = (): UseNewsReturn => {
       topics: Array<{ label: string; topic: string }>,
       useMock = false
     ) => {
-      console.log(
-        "🔄 useNews - fetchNews called with topics:",
-        topics,
-        "useMock:",
-        useMock
-      );
-
       // Se usar mock, não precisamos verificar a API key
       if (!useMock && !isApiConfigured()) {
-        console.error("❌ API key not configured");
         setError(
           "API key not configured. Please check your environment variables."
         );
@@ -46,21 +38,12 @@ export const useNews = (): UseNewsReturn => {
       setError(null);
 
       try {
-        console.log("🚀 Starting news fetch for topics:", topics);
-
         let results;
 
         if (useMock) {
-          console.log("🎭 Using mock data instead of API");
           // Usar dados mock
           results = topics.map(({ label, topic }) => {
             const mockArticles = getMockNewsForTopic(topic);
-            console.log(
-              `🎭 Mock data for ${topic}:`,
-              mockArticles.length,
-              "articles"
-            );
-
             return {
               label,
               topic,
@@ -72,45 +55,11 @@ export const useNews = (): UseNewsReturn => {
           results = await newsService.searchMultipleTopics(topics);
         }
 
-        console.log("📊 useNews - Raw results:", results);
-
-        // Log detalhado de cada resultado
-        results.forEach((result, index) => {
-          console.log(`📰 Result ${index + 1} for "${result.label}":`, {
-            label: result.label,
-            topic: result.topic,
-            articlesCount: result.articles?.length || 0,
-            firstArticle: result.articles?.[0]
-              ? {
-                  title: result.articles[0].title,
-                  url: result.articles[0].url,
-                  publishedAt: result.articles[0].publishedAt,
-                  source: result.articles[0].source,
-                  description: result.articles[0].description,
-                  content: result.articles[0].content,
-                }
-              : null,
-          });
-        });
-
         // Processar e validar os dados
         const processedResults = results.map((result) => {
-          console.log(
-            `🔍 Processing articles for ${result.label}:`,
-            result.articles
-          );
-
           const validArticles = result.articles.map((article) => {
-            console.log("📰 Processing article:", {
-              title: article.title,
-              url: article.url,
-              publishedAt: article.publishedAt,
-              source: article.source,
-            });
-
             // Verificar se o artigo tem a estrutura correta
             if (!article || typeof article !== "object") {
-              console.warn("⚠️ Invalid article structure:", article);
               return {
                 title: "Invalid article",
                 url: "#",
@@ -150,10 +99,8 @@ export const useNews = (): UseNewsReturn => {
           };
         });
 
-        console.log("✅ useNews - Processed results:", processedResults);
         setTopicsWithNews(processedResults);
       } catch (error) {
-        console.error("❌ useNews - Error fetching news:", error);
         setError(
           error instanceof Error ? error.message : "Failed to fetch news"
         );
@@ -165,7 +112,6 @@ export const useNews = (): UseNewsReturn => {
   );
 
   const clearNews = useCallback(() => {
-    console.log("🧹 useNews: Clearing all news");
     setTopicsWithNews([]);
     setError(null);
   }, []);
