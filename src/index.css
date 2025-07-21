@@ -79,7 +79,8 @@ select option:checked {
   background: #64748b;
 }
 
-/* Forçar background em todos os elementos HTML - Dark Mode */
+/* --- COMMENTED OUT: Custom backgrounds that override Tailwind dark mode --- */
+/*
 html.dark {
   background: linear-gradient(
     135deg,
@@ -94,12 +95,9 @@ html.dark {
   min-height: 100vh;
   height: 100%;
   overflow-x: hidden;
-  /* Prevenir overscroll */
   overscroll-behavior: none;
   -webkit-overflow-scrolling: touch;
 }
-
-/* Light Mode Background */
 html:not(.dark) {
   background: linear-gradient(
     135deg,
@@ -114,12 +112,9 @@ html:not(.dark) {
   min-height: 100vh;
   height: 100%;
   overflow-x: hidden;
-  /* Prevenir overscroll */
   overscroll-behavior: none;
   -webkit-overflow-scrolling: touch;
 }
-
-/* Dark Mode Body */
 body.dark {
   margin: 0;
   padding: 0;
@@ -137,12 +132,9 @@ body.dark {
   ) !important;
   background-attachment: fixed !important;
   overflow-x: hidden;
-  /* Prevenir overscroll */
   overscroll-behavior: none;
   -webkit-overflow-scrolling: touch;
 }
-
-/* Light Mode Body */
 body:not(.dark) {
   margin: 0;
   padding: 0;
@@ -160,12 +152,9 @@ body:not(.dark) {
   ) !important;
   background-attachment: fixed !important;
   overflow-x: hidden;
-  /* Prevenir overscroll */
   overscroll-behavior: none;
   -webkit-overflow-scrolling: touch;
 }
-
-/* Dark Mode Root */
 #root.dark {
   min-height: 100vh;
   height: 100%;
@@ -180,11 +169,8 @@ body:not(.dark) {
   ) !important;
   background-attachment: fixed !important;
   overflow-x: hidden;
-  /* Prevenir overscroll */
   overscroll-behavior: none;
 }
-
-/* Light Mode Root */
 #root:not(.dark) {
   min-height: 100vh;
   height: 100%;
@@ -199,11 +185,8 @@ body:not(.dark) {
   ) !important;
   background-attachment: fixed !important;
   overflow-x: hidden;
-  /* Prevenir overscroll */
   overscroll-behavior: none;
 }
-
-/* Garantir que qualquer div que ocupe toda a altura tenha o background correto - Dark Mode */
 div[min-h-screen].dark {
   background: linear-gradient(
     135deg,
@@ -215,11 +198,8 @@ div[min-h-screen].dark {
     #0f172a 100%
   ) !important;
   background-attachment: fixed !important;
-  /* Prevenir overscroll */
   overscroll-behavior: none;
 }
-
-/* Light Mode div min-h-screen */
 div[min-h-screen]:not(.dark) {
   background: linear-gradient(
     135deg,
@@ -231,11 +211,8 @@ div[min-h-screen]:not(.dark) {
     #475569 100%
   ) !important;
   background-attachment: fixed !important;
-  /* Prevenir overscroll */
   overscroll-behavior: none;
 }
-
-/* Resolver problema do scroll branco nos limites - Dark Mode */
 html.dark,
 body.dark,
 #root.dark,
@@ -253,12 +230,9 @@ div[min-h-screen].dark {
   background-size: cover !important;
   background-repeat: no-repeat !important;
   background-position: center center !important;
-  /* Prevenir overscroll */
   overscroll-behavior: none;
   -webkit-overflow-scrolling: touch;
 }
-
-/* Light Mode scroll fix */
 html:not(.dark),
 body:not(.dark),
 #root:not(.dark),
@@ -276,10 +250,10 @@ div[min-h-screen]:not(.dark) {
   background-size: cover !important;
   background-repeat: no-repeat !important;
   background-position: center center !important;
-  /* Prevenir overscroll */
   overscroll-behavior: none;
   -webkit-overflow-scrolling: touch;
 }
+*/
 
 /* Garantir que o viewport tenha o background correto - Dark Mode */
 @media screen and (max-width: 100vw) {

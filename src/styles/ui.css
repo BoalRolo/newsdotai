@@ -1,0 +1,43 @@
+@import "tailwindcss";
+
+/* Card style for glassmorphism effect */
+.card-glass {
+  @apply p-8 rounded-3xl bg-white/90 dark:bg-slate-800/30 backdrop-blur-xl border border-slate-200/50 dark:border-slate-700/50 shadow-2xl shadow-black/20;
+}
+
+/* Light mode only: beautiful card */
+.card-glass-light {
+  @apply p-8 rounded-3xl bg-white/80 border border-slate-200 shadow-xl backdrop-blur-xl;
+}
+
+/* Consistent button style */
+.btn-primary {
+  @apply w-full py-3 font-semibold text-white bg-blue-600 rounded-xl hover:bg-blue-700 transition-all duration-300 shadow-lg;
+}
+
+/* Light mode only: beautiful primary button */
+.btn-primary-light {
+  @apply w-full py-3 font-semibold text-white bg-blue-600 rounded-xl hover:bg-blue-700 transition-all duration-300 shadow-lg;
+}
+
+/* Light mode only: beautiful input */
+.input-light {
+  @apply w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500;
+}
+
+/* Glass gradient background for main pages */
+.bg-glass-gradient {
+  background: linear-gradient(
+    135deg,
+    #0a0a0f 0%,
+    #1a1a2e 20%,
+    #16213e 40%,
+    #0f3460 60%,
+    #1e3a8a 80%,
+    #0f172a 100%
+  );
+}
+
+.bg-glass-gradient-light {
+  background: linear-gradient(135deg, #e0e7ef 0%, #f8fafc 100%);
+}

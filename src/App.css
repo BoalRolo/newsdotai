@@ -1,6 +1,6 @@
 /* Estilos específicos do App podem ser adicionados aqui se necessário */
 
-/* Garantir que toda a aplicação tenha o background correto - Dark Mode */
+/*
 #root.dark {
   background: linear-gradient(
     135deg,
@@ -17,7 +17,6 @@
   overflow-x: hidden;
 }
 
-/* Light Mode Root */
 #root:not(.dark) {
   background: linear-gradient(
     135deg,
@@ -34,7 +33,6 @@
   overflow-x: hidden;
 }
 
-/* Garantir que o body e html tenham o background correto - Dark Mode */
 html.dark,
 body.dark {
   background: linear-gradient(
@@ -53,7 +51,6 @@ body.dark {
   overflow-x: hidden;
 }
 
-/* Light Mode body e html */
 html:not(.dark),
 body:not(.dark) {
   background: linear-gradient(
@@ -72,7 +69,6 @@ body:not(.dark) {
   overflow-x: hidden;
 }
 
-/* Forçar background em elementos com min-h-screen - Dark Mode */
 div[min-h-screen].dark {
   background: linear-gradient(
     135deg,
@@ -86,7 +82,6 @@ div[min-h-screen].dark {
   background-attachment: fixed !important;
 }
 
-/* Light Mode min-h-screen */
 div[min-h-screen]:not(.dark) {
   background: linear-gradient(
     135deg,
@@ -99,3 +94,4 @@ div[min-h-screen]:not(.dark) {
   ) !important;
   background-attachment: fixed !important;
 }
+*/
