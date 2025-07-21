@@ -1,12 +1,14 @@
 import React, { useState, useEffect, forwardRef } from "react";
 import { useAuth } from "../hooks/useAuth";
-import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { doc, getDoc } from "firebase/firestore";
 import { db } from "../config/firebase";
 import { useNavigate } from "react-router-dom";
-import { useTheme } from "./ThemeContext";
+import { useTheme } from "../components/layout/ThemeContext";
 import "../styles/ui.css";
+import DatePicker from "react-datepicker";
+
+console.log("SIGNUP PAGE LOADED");
 
 function validatePassword(password: string): string[] {
   const errors: string[] = [];
@@ -34,7 +36,7 @@ const CustomDateInput = forwardRef<
 ));
 CustomDateInput.displayName = "CustomDateInput";
 
-const LoginPage: React.FC = () => {
+const SignUp: React.FC = () => {
   const { user, loading, error, signUp, signIn } = useAuth();
   const { isDarkMode } = useTheme();
   const [isSignUp, setIsSignUp] = useState(false);
@@ -59,7 +61,16 @@ const LoginPage: React.FC = () => {
     let active = true;
     setUsernameStatus("checking");
     const check = setTimeout(async () => {
-      const ref = doc(db, "usernames", username);
+      console.log(
+        "CHECKING AVAILABILITY FOR:",
+        username,
+        "(lowercased:",
+        username.toLowerCase(),
+        ")"
+      );
+      // Verificação case-insensitive
+      const ref = doc(db, "usernames", username.toLowerCase());
+      console.log("Checking username", username);
       const snap = await getDoc(ref);
       if (!active) return;
       setUsernameStatus(snap.exists() ? "taken" : "available");
@@ -99,7 +110,7 @@ const LoginPage: React.FC = () => {
 
   useEffect(() => {
     if (user) {
-      navigate("/labeltopicmanager");
+      navigate("/activetopics");
     }
   }, [user, navigate]);
 
@@ -196,10 +207,14 @@ const LoginPage: React.FC = () => {
               <>
                 <div className="relative">
                   <input
+                    id="username"
                     type="text"
                     placeholder="Username"
-                    value={username}
-                    onChange={(e) => setUsername(e.target.value)}
+                    value={username.toLowerCase()}
+                    onChange={(e) => {
+                      console.log("USERNAME INPUT:", e.target.value);
+                      setUsername(e.target.value);
+                    }}
                     className={`w-full px-4 py-3 rounded-xl border-2 transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-blue-500/20 ${
                       isDarkMode
                         ? "bg-slate-700/50 text-white border-slate-600/50 placeholder-slate-400 focus:border-blue-500/50"
@@ -386,4 +401,4 @@ const LoginPage: React.FC = () => {
   );
 };
 
-export default LoginPage;
+export default SignUp;

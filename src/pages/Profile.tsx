@@ -1,12 +1,50 @@
 import React, { useState } from "react";
 import { useAuth } from "../hooks/useAuth";
-import { useTheme } from "./ThemeContext";
+import { db } from "../config/firebase";
+import { doc, getDoc, updateDoc } from "firebase/firestore";
+import { useTheme } from "../components/layout/ThemeContext";
 import "../styles/ui.css";
 
 export const ProfilePage: React.FC = () => {
   const { isDarkMode, toggleDarkMode } = useTheme();
   const { user } = useAuth();
-  const [username, setUsername] = useState(user?.email?.split("@")[0] || "");
+  const [username, setUsername] = useState("");
+  const [newUsername, setNewUsername] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [saveMsg, setSaveMsg] = useState("");
+
+  // Buscar username do Firestore ao montar
+  React.useEffect(() => {
+    if (user) {
+      const fetchUsername = async () => {
+        const docRef = doc(db, "users", user.uid);
+        const docSnap = await getDoc(docRef);
+        if (docSnap.exists()) {
+          setUsername(docSnap.data().username || "");
+          // Não atualize setNewUsername aqui!
+        }
+      };
+      fetchUsername();
+    }
+  }, [user]);
+
+  // Função para salvar novo username
+  const handleSaveUsername = async () => {
+    if (!user || !newUsername.trim()) return;
+    setSaving(true);
+    setSaveMsg("");
+    try {
+      const userRef = doc(db, "users", user.uid);
+      await updateDoc(userRef, { username: newUsername.trim() });
+      setUsername(newUsername.trim());
+      setNewUsername("");
+      setSaveMsg("Username updated!");
+    } catch (err) {
+      setSaveMsg("Error updating username");
+    } finally {
+      setSaving(false);
+    }
+  };
 
   // Placeholder avatar (could be replaced with user photoURL)
   const avatarUrl =
@@ -156,17 +194,23 @@ export const ProfilePage: React.FC = () => {
                 ? "w-full px-4 py-3 rounded-xl border border-slate-300 dark:border-slate-600 bg-slate-100 dark:bg-slate-700 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 mb-4"
                 : "input-light mb-4"
             }
-            placeholder="New username"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
+            placeholder="username"
+            value={newUsername}
+            onChange={(e) => setNewUsername(e.target.value)}
+            disabled={saving}
           />
           <button
             className={
               isDarkMode ? "btn-primary mt-2" : "btn-primary-light mt-2"
             }
+            onClick={handleSaveUsername}
+            disabled={saving}
           >
-            Save
+            {saving ? "Saving..." : "Save"}
           </button>
+          {saveMsg && (
+            <div className="text-xs mt-2 text-green-500">{saveMsg}</div>
+          )}
         </section>
         {/* Password Card */}
         <section

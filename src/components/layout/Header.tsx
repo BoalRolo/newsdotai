@@ -1,15 +1,13 @@
 import React, { useEffect, useState } from "react";
-import { useAuth } from "../hooks/useAuth";
+import { useAuth } from "../../hooks/useAuth";
 import { useNavigate } from "react-router-dom";
-import { db } from "../config/firebase";
+import { db } from "../../config/firebase";
 import { doc, getDoc } from "firebase/firestore";
-import { useTheme } from "./ThemeContext";
 
 const Header: React.FC = () => {
   const { user, signOutUser } = useAuth();
   const navigate = useNavigate();
   const [username, setUsername] = useState<string | null>(null);
-  const { isDarkMode, toggleDarkMode } = useTheme();
 
   // Fetch username from Firestore if available
   useEffect(() => {
@@ -64,31 +62,26 @@ const Header: React.FC = () => {
         {/* Sign out button */}
         {user && (
           <button
-            onClick={async () => {
-              await signOutUser();
-              navigate("/");
-            }}
-            className="ml-2 px-4 py-2 rounded-lg bg-red-600 hover:bg-red-700 text-white font-semibold transition-colors duration-200 focus:outline-none"
+            onClick={signOutUser}
+            className="flex items-center gap-2 px-5 py-2 rounded-full bg-gradient-to-r from-red-500 to-pink-500 text-white font-semibold shadow-md hover:from-red-600 hover:to-pink-600 hover:scale-105 active:scale-95 transition-all duration-200 focus:outline-none"
           >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-5 w-5"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a2 2 0 01-2 2H7a2 2 0 01-2-2V7a2 2 0 012-2h4a2 2 0 012 2v1"
+              />
+            </svg>
             Sign Out
           </button>
         )}
-        {/* Dark mode toggle button */}
-        <button
-          onClick={toggleDarkMode}
-          className="ml-2 p-2 rounded-full bg-slate-800 hover:bg-slate-700 dark:bg-slate-700 dark:hover:bg-slate-600 transition-colors duration-200 focus:outline-none border border-slate-600"
-          aria-label="Toggle dark mode"
-        >
-          {isDarkMode ? (
-            <span role="img" aria-label="Light mode">
-              ☀️
-            </span>
-          ) : (
-            <span role="img" aria-label="Dark mode">
-              🌙
-            </span>
-          )}
-        </button>
       </div>
     </header>
   );

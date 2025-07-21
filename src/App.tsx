@@ -1,23 +1,33 @@
 import React from "react";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import LoginPage from "./components/LoginPage";
-import LabelTopicManager from "./components/LabelTopicManager";
-import ProtectedRoute from "./components/ProtectedRoute";
-import ProfilePage from "./components/ProfilePage";
-import Header from "./components/Header";
-import { ThemeProvider } from "./components/ThemeContext";
+import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
+import Login from "./pages/Login";
+import SignUp from "./pages/SignUp";
+import ActiveTopics from "./pages/ActiveTopics";
+import Profile from "./pages/Profile";
+import Header from "./components/layout/Header";
+import { ThemeProvider } from "./components/layout/ThemeContext";
+import ProtectedRoute from "./components/layout/ProtectedRoute";
+import { useAuth } from "./hooks/useAuth";
 
-const App: React.FC = () => (
-  <ThemeProvider>
-    <BrowserRouter>
-      <Header />
+function AppRoutes() {
+  const { user } = useAuth();
+  const location = useLocation();
+  const isAuthPage =
+    location.pathname === "/" ||
+    location.pathname === "/login" ||
+    location.pathname === "/signup";
+
+  return (
+    <>
+      {!isAuthPage && user && <Header />}
       <Routes>
-        <Route path="/" element={<LoginPage />} />
+        <Route path="/" element={<Login />} />
+        <Route path="/signup" element={<SignUp />} />
         <Route
-          path="/labeltopicmanager"
+          path="/activetopics"
           element={
             <ProtectedRoute>
-              <LabelTopicManager />
+              <ActiveTopics />
             </ProtectedRoute>
           }
         />
@@ -25,11 +35,19 @@ const App: React.FC = () => (
           path="/profile"
           element={
             <ProtectedRoute>
-              <ProfilePage />
+              <Profile />
             </ProtectedRoute>
           }
         />
       </Routes>
+    </>
+  );
+}
+
+const App: React.FC = () => (
+  <ThemeProvider>
+    <BrowserRouter>
+      <AppRoutes />
     </BrowserRouter>
   </ThemeProvider>
 );

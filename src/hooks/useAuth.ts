@@ -52,9 +52,9 @@ export const useAuth = (): UseAuthReturn => {
       setLoading(true);
       setError(null);
       try {
-        // Always use lowercase for username
+        // Sempre use lowercase para username
         const usernameLower = username.toLowerCase();
-        // Check if username already exists
+        // Check if username already exists (case-insensitive)
         const usernameRef = doc(db, "usernames", usernameLower);
         const usernameSnap = await getDoc(usernameRef);
         if (usernameSnap.exists()) {
@@ -93,7 +93,7 @@ export const useAuth = (): UseAuthReturn => {
     setError(null);
     try {
       let email = identifier;
-      // If not an email, treat as username (case-insensitive)
+      // Se não for email, trate como username (case-insensitive)
       if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(identifier)) {
         const usernameLower = identifier.toLowerCase();
         const usernameRef = doc(db, "usernames", usernameLower);

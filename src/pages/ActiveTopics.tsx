@@ -1,11 +1,11 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useNews } from "../hooks/useNews";
-import NewsDisplay from "./NewsDisplay";
-import CustomDropdown from "./CustomDropdown";
-import { useTheme } from "./ThemeContext";
+import NewsDisplay from "../components/common/NewsDisplay";
+import CustomDropdown from "../components/common/CustomDropdown";
+import { useTheme } from "../components/layout/ThemeContext";
 import "../styles/ui.css";
 
-export default function LabelTopicManager() {
+export default function ActiveTopics() {
   const { isDarkMode } = useTheme();
   const [label, setLabel] = useState("");
   const [topic, setTopic] = useState("");

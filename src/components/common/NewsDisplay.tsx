@@ -1,4 +1,4 @@
-import type { TopicWithNews } from "../types/news";
+import type { TopicWithNews } from "../../types/news";
 
 interface NewsDisplayProps {
   topicsWithNews: TopicWithNews[];
