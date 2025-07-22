@@ -1,7 +1,13 @@
 import React, { useState } from "react";
 import { useAuth } from "../hooks/useAuth";
 import { db } from "../config/firebase";
-import { doc, getDoc, updateDoc } from "firebase/firestore";
+import { doc, getDoc, updateDoc, setDoc, deleteDoc } from "firebase/firestore";
+import {
+  updateProfile,
+  updatePassword,
+  reauthenticateWithCredential,
+  EmailAuthProvider,
+} from "firebase/auth";
 import { useTheme } from "../components/layout/ThemeContext";
 import "../styles/ui.css";
 
@@ -12,6 +18,13 @@ export const ProfilePage: React.FC = () => {
   const [newUsername, setNewUsername] = useState("");
   const [saving, setSaving] = useState(false);
   const [saveMsg, setSaveMsg] = useState("");
+  const [usernameStatus, setUsernameStatus] = useState<
+    null | "checking" | "taken" | "available"
+  >(null);
+  const [newPassword, setNewPassword] = useState("");
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [passwordMsg, setPasswordMsg] = useState("");
+  const [passwordSaving, setPasswordSaving] = useState(false);
 
   // Buscar username do Firestore ao montar
   React.useEffect(() => {
@@ -28,14 +41,55 @@ export const ProfilePage: React.FC = () => {
     }
   }, [user]);
 
+  // Check username availability when newUsername changes
+  React.useEffect(() => {
+    if (!newUsername) {
+      setUsernameStatus(null);
+      return;
+    }
+    let active = true;
+    setUsernameStatus("checking");
+    const check = setTimeout(async () => {
+      const ref = doc(db, "usernames", newUsername.toLowerCase());
+      const snap = await getDoc(ref);
+      if (!active) return;
+      setUsernameStatus(snap.exists() ? "taken" : "available");
+    }, 500);
+    return () => {
+      active = false;
+      clearTimeout(check);
+    };
+  }, [newUsername]);
+
+  // Ensure newUsername is empty when user changes
+  React.useEffect(() => {
+    setNewUsername("");
+  }, [user]);
+
   // Função para salvar novo username
   const handleSaveUsername = async () => {
     if (!user || !newUsername.trim()) return;
+    if (usernameStatus === "taken") {
+      setSaveMsg("Username already taken.");
+      return;
+    }
     setSaving(true);
     setSaveMsg("");
     try {
+      // Remove old username from 'usernames' collection
+      if (username) {
+        await deleteDoc(doc(db, "usernames", username.toLowerCase()));
+      }
+      // Add new username to 'usernames' collection
+      await setDoc(doc(db, "usernames", newUsername.toLowerCase()), {
+        uid: user.uid,
+        email: user.email,
+      });
+      // Update user's document
       const userRef = doc(db, "users", user.uid);
       await updateDoc(userRef, { username: newUsername.trim() });
+      // Update Firebase Auth displayName
+      await updateProfile(user, { displayName: newUsername.trim() });
       setUsername(newUsername.trim());
       setNewUsername("");
       setSaveMsg("Username updated!");
@@ -45,6 +99,18 @@ export const ProfilePage: React.FC = () => {
       setSaving(false);
     }
   };
+
+  function validatePassword(password: string): string[] {
+    const errors: string[] = [];
+    if (password.length < 8) errors.push("At least 8 characters");
+    if (!/[A-Z]/.test(password)) errors.push("One uppercase letter");
+    if (!/[a-z]/.test(password)) errors.push("One lowercase letter");
+    if (!/[0-9]/.test(password)) errors.push("One number");
+    if (!/[^A-Za-z0-9]/.test(password)) errors.push("One special character");
+    return errors;
+  }
+
+  const passwordErrors = validatePassword(newPassword);
 
   // Placeholder avatar (could be replaced with user photoURL)
   const avatarUrl =
@@ -187,18 +253,35 @@ export const ProfilePage: React.FC = () => {
             New username
           </label>
           <input
-            id="username"
+            id="new-username"
+            name="new-username"
             type="text"
+            autoComplete="nope"
             className={
               isDarkMode
                 ? "w-full px-4 py-3 rounded-xl border border-slate-300 dark:border-slate-600 bg-slate-100 dark:bg-slate-700 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 mb-4"
                 : "input-light mb-4"
             }
-            placeholder="username"
+            placeholder="New username"
             value={newUsername}
-            onChange={(e) => setNewUsername(e.target.value)}
+            onChange={(e) =>
+              setNewUsername(
+                e.target.value.replace(/[^a-z0-9_]/g, "").toLowerCase()
+              )
+            }
             disabled={saving}
           />
+          {newUsername && (
+            <span className="text-xs ml-2">
+              {usernameStatus === "checking" && "Checking..."}
+              {usernameStatus === "taken" && (
+                <span className="text-red-500">Taken</span>
+              )}
+              {usernameStatus === "available" && (
+                <span className="text-green-500">Available</span>
+              )}
+            </span>
+          )}
           <button
             className={
               isDarkMode ? "btn-primary mt-2" : "btn-primary-light mt-2"
@@ -236,15 +319,131 @@ export const ProfilePage: React.FC = () => {
                 : "block text-sm font-medium mb-2 text-slate-900"
             }
           >
-            Update your account password securely.
+            Current password
           </label>
+          <input
+            type="password"
+            autoComplete="current-password"
+            className={
+              isDarkMode
+                ? "w-full px-4 py-3 rounded-xl border border-slate-300 dark:border-slate-600 bg-slate-100 dark:bg-slate-700 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 mb-2"
+                : "input-light mb-2"
+            }
+            placeholder="Current password"
+            value={currentPassword}
+            onChange={(e) => setCurrentPassword(e.target.value)}
+            disabled={passwordSaving}
+          />
+          <label
+            className={
+              isDarkMode
+                ? "block text-sm font-medium mb-2"
+                : "block text-sm font-medium mb-2 text-slate-900"
+            }
+          >
+            New password
+          </label>
+          <input
+            type="password"
+            autoComplete="new-password"
+            className={
+              isDarkMode
+                ? "w-full px-4 py-3 rounded-xl border border-slate-300 dark:border-slate-600 bg-slate-100 dark:bg-slate-700 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 mb-2"
+                : "input-light mb-2"
+            }
+            placeholder="New password"
+            value={newPassword}
+            onChange={(e) => setNewPassword(e.target.value)}
+            disabled={passwordSaving}
+          />
+          {newPassword && (
+            <ul className="mt-1 ml-2 text-xs text-slate-400 space-y-0.5">
+              <li
+                className={
+                  newPassword.length >= 8 ? "text-green-500" : "text-red-500"
+                }
+              >
+                At least 8 characters
+              </li>
+              <li
+                className={
+                  /[A-Z]/.test(newPassword) ? "text-green-500" : "text-red-500"
+                }
+              >
+                One uppercase letter
+              </li>
+              <li
+                className={
+                  /[a-z]/.test(newPassword) ? "text-green-500" : "text-red-500"
+                }
+              >
+                One lowercase letter
+              </li>
+              <li
+                className={
+                  /[0-9]/.test(newPassword) ? "text-green-500" : "text-red-500"
+                }
+              >
+                One number
+              </li>
+              <li
+                className={
+                  /[^A-Za-z0-9]/.test(newPassword)
+                    ? "text-green-500"
+                    : "text-red-500"
+                }
+              >
+                One special character
+              </li>
+            </ul>
+          )}
           <button
             className={
               isDarkMode ? "btn-primary mt-2" : "btn-primary-light mt-2"
             }
+            onClick={async () => {
+              setPasswordMsg("");
+              setPasswordSaving(true);
+              try {
+                if (!user) throw new Error("User not found");
+                if (passwordErrors.length > 0) {
+                  setPasswordMsg("Password does not meet requirements.");
+                  setPasswordSaving(false);
+                  return;
+                }
+                const credential = EmailAuthProvider.credential(
+                  user.email!,
+                  currentPassword
+                );
+                await reauthenticateWithCredential(user, credential);
+                await updatePassword(user, newPassword);
+                setPasswordMsg("Password updated!");
+                setCurrentPassword("");
+                setNewPassword("");
+              } catch (err: any) {
+                if (err.code === "auth/wrong-password") {
+                  setPasswordMsg("Current password is incorrect.");
+                } else if (err.code === "auth/weak-password") {
+                  setPasswordMsg("Password should be at least 6 characters.");
+                } else {
+                  setPasswordMsg("Error updating password: " + err.message);
+                }
+              } finally {
+                setPasswordSaving(false);
+              }
+            }}
+            disabled={
+              passwordSaving ||
+              !currentPassword ||
+              !newPassword ||
+              passwordErrors.length > 0
+            }
           >
-            Change Password
+            {passwordSaving ? "Saving..." : "Change Password"}
           </button>
+          {passwordMsg && (
+            <div className="text-xs mt-2 text-green-500">{passwordMsg}</div>
+          )}
         </section>
       </div>
     </div>

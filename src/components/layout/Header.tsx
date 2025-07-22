@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { useAuth } from "../../hooks/useAuth";
 import { useNavigate } from "react-router-dom";
 import { db } from "../../config/firebase";
-import { doc, getDoc } from "firebase/firestore";
+import { doc, getDoc, onSnapshot } from "firebase/firestore";
 
 const Header: React.FC = () => {
   const { user, signOutUser } = useAuth();
@@ -13,17 +13,22 @@ const Header: React.FC = () => {
 
   // Fetch username from Firestore if available
   useEffect(() => {
-    const fetchUsername = async () => {
-      if (user?.uid) {
-        const userDoc = await getDoc(doc(db, "users", user.uid));
+    let unsubscribe: (() => void) | undefined;
+    if (user?.uid) {
+      const userDocRef = doc(db, "users", user.uid);
+      unsubscribe = onSnapshot(userDocRef, (userDoc) => {
         if (userDoc.exists()) {
           setUsername(userDoc.data().username);
         } else {
           setUsername(null);
         }
-      }
+      });
+    } else {
+      setUsername(null);
+    }
+    return () => {
+      if (unsubscribe) unsubscribe();
     };
-    fetchUsername();
   }, [user]);
 
   // Fechar dropdown ao clicar fora
