@@ -12,6 +12,9 @@ pnpm-debug.log*
 .env.test.local
 .env.production.local
 
+# Ignore environment files with secrets or deployment config
+.env.production
+
 # Build outputs
 dist/
 build/
