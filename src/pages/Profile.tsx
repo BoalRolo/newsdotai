@@ -127,7 +127,9 @@ export const ProfilePage: React.FC = () => {
       }`}
     >
       <div
-        className={`card-glass${!isDarkMode ? "-light" : ""} w-full max-w-md`}
+        className={`card-glass${
+          !isDarkMode ? "-light" : ""
+        } w-full max-w-md md:max-w-xl lg:max-w-2xl`}
       >
         {/* Profile Card Content */}
         <div className="flex flex-col items-center mb-8">

@@ -5,7 +5,7 @@ import CustomDropdown from "../components/common/CustomDropdown";
 import { useTheme } from "../components/layout/ThemeContext";
 import "../styles/ui.css";
 
-export default function ActiveTopics() {
+export default function MyTopics() {
   const { isDarkMode } = useTheme();
   const [label, setLabel] = useState("");
   const [topic, setTopic] = useState("");

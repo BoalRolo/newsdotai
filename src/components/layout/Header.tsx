@@ -1,12 +1,13 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useAuth } from "../../hooks/useAuth";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link, useLocation } from "react-router-dom";
 import { db } from "../../config/firebase";
-import { doc, getDoc, onSnapshot } from "firebase/firestore";
+import { doc, onSnapshot } from "firebase/firestore";
 
 const Header: React.FC = () => {
   const { user, signOutUser } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const [username, setUsername] = useState<string | null>(null);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -62,7 +63,7 @@ const Header: React.FC = () => {
       {/* App Title/Logo */}
       <div
         className="flex items-center space-x-3 cursor-pointer select-none"
-        onClick={() => navigate("/")}
+        onClick={() => navigate("/home")}
       >
         <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-600 via-purple-600 to-indigo-700 flex items-center justify-center">
           <span className="text-white font-bold text-lg">N</span>
@@ -71,8 +72,18 @@ const Header: React.FC = () => {
           NEWS.AI
         </span>
       </div>
-      {/* Profile Section */}
-      <div className="flex items-center space-x-3">
+      {/* Profile Section + My Topics */}
+      <div className="flex items-center space-x-4">
+        <Link
+          to="/mytopics"
+          className={`font-semibold px-4 py-2 rounded-xl transition-colors duration-200 ${
+            location.pathname === "/mytopics"
+              ? "text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-slate-800"
+              : "text-slate-700 dark:text-slate-200 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-slate-800"
+          }`}
+        >
+          My Topics
+        </Link>
         {user && (
           <div className="relative" ref={dropdownRef}>
             <button
