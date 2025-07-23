@@ -110,7 +110,7 @@ const SignUp: React.FC = () => {
 
   useEffect(() => {
     if (user) {
-      navigate("/activetopics");
+      navigate("/home");
     }
   }, [user, navigate]);
 

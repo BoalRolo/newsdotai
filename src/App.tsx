@@ -48,7 +48,11 @@ function AppRoutes() {
 
 const App: React.FC = () => (
   <ThemeProvider>
-    <BrowserRouter>
+    <BrowserRouter
+      basename={
+        process.env.NODE_ENV === "production" ? "/newsdotai" : undefined
+      }
+    >
       <AppRoutes />
     </BrowserRouter>
   </ThemeProvider>
