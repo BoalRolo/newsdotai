@@ -1,10 +1,9 @@
 // Environment configuration
 export const config = {
-  // API Configuration - Now using NestJS proxy server
-  apiKey: import.meta.env.VITE_NEWS_API_KEY || "",
+  // API Configuration - Now using NestJS proxy server (no API key needed in frontend)
   baseUrl: import.meta.env.DEV
     ? "http://localhost:3001/api"
-    : "https://your-nestjs-server.com/api", // Update this with your production server URL
+    : "https://newsdotai-backend.onrender.com/api", // Atualizado para Render
 
   // Firebase Configuration
   firebase: {
@@ -24,7 +23,6 @@ export const config = {
 // Validate required environment variables
 export const validateConfig = () => {
   const requiredVars = [
-    "VITE_NEWS_API_KEY",
     "VITE_FIREBASE_API_KEY",
     "VITE_FIREBASE_AUTH_DOMAIN",
     "VITE_FIREBASE_PROJECT_ID",
@@ -41,9 +39,9 @@ export const validateConfig = () => {
   }
 };
 
-// Check if API key is configured
+// Check if API is configured (backend proxy is always available)
 export const isApiConfigured = () => {
-  return !!config.apiKey && config.apiKey !== "";
+  return true; // Backend proxy handles API key
 };
 
 // Get base URL for different environments

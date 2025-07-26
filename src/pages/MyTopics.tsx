@@ -365,7 +365,7 @@ export default function MyTopics() {
         {/* Spacer for dropdown clearance */}
         <div className="h-4"></div>
 
-        {/* API Key Warning */}
+        {/* Backend Connection Warning */}
         {!isApiKeyConfigured && (
           <div
             className={`p-4 rounded-2xl border ${
@@ -374,10 +374,10 @@ export default function MyTopics() {
                 : "bg-yellow-50 border-yellow-200 text-yellow-700"
             }`}
           >
-            <p className="font-medium">⚠️ API Key Required</p>
+            <p className="font-medium">⚠️ Backend Connection Required</p>
             <p className="text-sm mt-1">
-              Please add your News API key to the environment variables
-              (VITE_NEWS_API_KEY) or use Mock Data for testing
+              Unable to connect to the news service. Please check if the backend
+              is running.
             </p>
           </div>
         )}
@@ -385,10 +385,9 @@ export default function MyTopics() {
         {/* Error Display */}
         {error && (
           <div className="text-red-500 text-center p-4 bg-red-50 dark:bg-red-900/20 rounded-xl">
-            <p className="font-medium">⚠️ API Key Required</p>
+            <p className="font-medium">⚠️ Connection Error</p>
             <p className="text-sm mt-1">
-              Please add your News API key to the environment variables
-              (VITE_NEWS_API_KEY) or use Mock Data for testing
+              Unable to connect to the news service. Please try again later.
             </p>
           </div>
         )}

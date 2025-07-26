@@ -1,16 +1,17 @@
 # NewsDotAI
 
-Uma aplicação React moderna para buscar e exibir notícias usando a NewsData.io API, com backend NestJS para resolver problemas de CORS.
+Aplicação React moderna para busca e gestão de notícias com backend NestJS proxy. Resolve problemas de CORS e oferece autenticação Firebase, gestão de tópicos pessoais e interface responsiva.
 
-## 🚀 Estrutura do Projeto
+## 📁 Estrutura do Projeto
 
 ```
 newsdotai/
 ├── src/                    # Frontend React
-│   ├── components/         # Componentes React
+│   ├── components/         # Componentes reutilizáveis
 │   ├── pages/             # Páginas da aplicação
-│   ├── hooks/             # Custom hooks
+│   ├── hooks/             # Custom hooks (useAuth, useNews, etc.)
 │   ├── services/          # Serviços de API
+│   ├── config/            # Configuração de ambiente
 │   └── types/             # Definições TypeScript
 ├── server/                # Backend NestJS (Proxy API)
 │   ├── src/
@@ -20,157 +21,192 @@ newsdotai/
 └── package.json           # Frontend package.json
 ```
 
-## 🛠️ Tecnologias
+## 🛠️ Stack Tecnológica
 
-### Frontend
+**Frontend:** React 18 + TypeScript + Vite + Tailwind CSS + Firebase  
+**Backend:** NestJS + Axios + CORS  
+**Deploy:** GitHub Pages (Frontend) + Render (Backend)
 
-- **React 18** com TypeScript
-- **Vite** para build e desenvolvimento
-- **Tailwind CSS** para styling
-- **React Router** para navegação
-- **Firebase** para autenticação e base de dados
+## 🚀 Comandos de Desenvolvimento
 
-### Backend
-
-- **NestJS** para API proxy
-- **Axios** para requisições HTTP
-- **CORS** configurado para frontend
-
-## 📦 Instalação
-
-### 1. Instalar dependências
+### Instalação
 
 ```bash
-# Instalar dependências do frontend e backend
+# Instalar tudo (frontend + backend)
 npm run install:all
+
+# Ou individualmente
+npm install                    # Frontend
+cd server && npm install       # Backend
 ```
 
-### 2. Configurar variáveis de ambiente
+### Execução Local
 
-#### Frontend (.env)
+```bash
+# Opção 1: Tudo de uma vez (Recomendado)
+npm run dev:full
+
+# Opção 2: Separadamente
+npm run dev                    # Frontend (porta 5173)
+npm run server:dev            # Backend (porta 3001)
+```
+
+### Build e Deploy
+
+```bash
+# Build
+npm run build                 # Frontend
+npm run server:build          # Backend
+
+# Deploy
+npm run deploy                # GitHub Pages
+```
+
+## ⚙️ Configuração de Ambiente
+
+### Frontend (.env)
 
 ```env
-VITE_NEWS_API_KEY=sua_chave_do_newsdata.io
+# Firebase (obrigatório)
 VITE_FIREBASE_API_KEY=sua_chave_firebase
 VITE_FIREBASE_AUTH_DOMAIN=seu_projeto.firebaseapp.com
 VITE_FIREBASE_PROJECT_ID=seu_projeto_id
 VITE_FIREBASE_STORAGE_BUCKET=seu_projeto.appspot.com
 VITE_FIREBASE_MESSAGING_SENDER_ID=123456789
 VITE_FIREBASE_APP_ID=1:123456789:web:abcdef
+
+# Base URL (opcional)
+VITE_BASE=/
 ```
 
-#### Backend (server/.env)
+### Backend (server/.env)
 
 ```env
+# NewsData.io API Key (obrigatório)
 NEWSDATA_API_KEY=sua_chave_do_newsdata.io
-```
-
-## 🚀 Como Executar
-
-### Opção 1: Arrancar tudo de uma vez (Recomendado)
-
-```bash
-npm run dev:full
-```
-
-Isto arranca tanto o backend (porta 3001) como o frontend (porta 5173).
-
-### Opção 2: Arrancar separadamente
-
-#### Backend (Terminal 1)
-
-```bash
-npm run server:dev
-```
-
-Backend disponível em: http://localhost:3001
-
-#### Frontend (Terminal 2)
-
-```bash
-npm run dev
-```
-
-Frontend disponível em: http://localhost:5173
-
-## 🔧 Scripts Disponíveis
-
-```bash
-# Desenvolvimento
-npm run dev              # Arrancar apenas frontend
-npm run server:dev       # Arrancar apenas backend
-npm run dev:full         # Arrancar frontend + backend
-
-# Build
-npm run build            # Build do frontend
-npm run server:build     # Build do backend
-
-# Deploy
-npm run deploy           # Deploy para GitHub Pages
-
-# Instalação
-npm run install:all      # Instalar dependências de frontend + backend
 ```
 
 ## 🌐 Endpoints da API
 
 ### Backend NestJS (Proxy)
 
+- `GET /` - Health check
 - `GET /api/news` - Buscar notícias da NewsData.io
-  - Parâmetros: `q`, `language`, `country`, `category`, `page`
 
-### Exemplos de uso
+**Parâmetros suportados:**
+
+- `q` - Query de busca
+- `language` - Idioma (pt, en, es, etc.)
+- `country` - País (pt, us, gb, etc.)
+- `category` - Categoria (sports, technology, etc.)
+- `page` - Página de resultados
+
+**Exemplos:**
 
 ```bash
 # Notícias de desporto em Portugal
 curl "http://localhost:3001/api/news?country=pt&category=sports"
 
-# Notícias sobre Sporting CP
-curl "http://localhost:3001/api/news?q=SportingCP&language=pt"
+# Notícias sobre tecnologia
+curl "http://localhost:3001/api/news?q=technology&language=en"
 ```
 
-## 🔐 Configuração do Firebase
+## 🔐 Configuração Firebase
 
-1. Criar projeto no [Firebase Console](https://console.firebase.google.com/)
-2. Ativar Authentication e Firestore
-3. Configurar regras de segurança do Firestore
-4. Adicionar as variáveis de ambiente no `.env`
+1. **Criar projeto** no [Firebase Console](https://console.firebase.google.com/)
+2. **Ativar serviços:**
+   - Authentication (Email/Password)
+   - Firestore Database
+3. **Configurar regras de segurança** do Firestore:
+   ```javascript
+   rules_version = '2';
+   service cloud.firestore {
+     match /databases/{database}/documents {
+       match /users/{userId} {
+         allow read, write: if request.auth != null && request.auth.uid == userId;
+         match /topics/{topicId} {
+           allow read, write: if request.auth != null && request.auth.uid == userId;
+         }
+         match /settings/{settingId} {
+           allow read, write: if request.auth != null && request.auth.uid == userId;
+         }
+       }
+       match /usernames/{username} {
+         allow read, write: if request.auth != null;
+       }
+     }
+   }
+   ```
+4. **Adicionar variáveis** no `.env`
+
+## 🚀 Deploy em Produção
+
+### Frontend (GitHub Pages)
+
+```bash
+# Deploy automático
+npm run deploy
+
+# URL: https://boalrolo.github.io/newsdotai/
+```
+
+### Backend (Render)
+
+1. **Criar conta** no [Render.com](https://render.com)
+2. **Criar Web Service:**
+   - Connect GitHub repository
+   - Root Directory: `server`
+   - Build Command: `npm install && npm run build`
+   - Start Command: `npm run start:prod`
+3. **Adicionar variável de ambiente:**
+   - `NEWSDATA_API_KEY`: tua chave da NewsData.io
+4. **Deploy automático** após push para main
+
+### Atualizar Frontend para Produção
+
+Após deploy do backend, atualizar `src/config/env.ts`:
+
+```typescript
+baseUrl: import.meta.env.DEV
+  ? "http://localhost:3001/api"
+  : "https://newsdotai-backend.onrender.com/api", // Tua URL do Render
+```
 
 ## 📱 Funcionalidades
 
-- ✅ Autenticação com Firebase
-- ✅ Busca de notícias por tópicos
-- ✅ Tema claro/escuro
-- ✅ Gestão de tópicos pessoais
-- ✅ Proxy API para resolver CORS
-- ✅ Interface responsiva
-- ✅ Deploy automático para GitHub Pages
+- **Autenticação:** Login/Registo com Firebase
+- **Gestão de Tópicos:** Adicionar, editar, eliminar tópicos pessoais
+- **Busca de Notícias:** API NewsData.io via proxy NestJS
+- **Tema:** Toggle claro/escuro persistente
+- **Responsivo:** Interface adaptável a todos os dispositivos
+- **Persistência:** Dados guardados no Firestore
 
-## 🚀 Deploy
+## 🔧 Troubleshooting
 
-### GitHub Pages
+### Porta 3001 ocupada
 
 ```bash
-npm run deploy
+lsof -ti :3001 | xargs kill -9
 ```
 
-### Backend (Opcional)
+### Erro de CORS
 
-O backend pode ser deployado em:
+- Backend já resolve automaticamente
+- Verificar se CORS está configurado no `main.ts`
 
-- **Render**
-- **Railway**
-- **Vercel**
-- **Heroku**
+### Erro de API Key
 
-## 🤝 Contribuição
+- Frontend não precisa de API key (backend gere)
+- Verificar se `NEWSDATA_API_KEY` está configurada no Render
 
-1. Fork o projeto
-2. Criar branch para feature (`git checkout -b feature/AmazingFeature`)
-3. Commit as mudanças (`git commit -m 'Add some AmazingFeature'`)
-4. Push para a branch (`git push origin feature/AmazingFeature`)
-5. Abrir Pull Request
+### Build errors
+
+```bash
+# Limpar cache
+rm -rf node_modules package-lock.json
+npm install
+```
 
 ## 📄 Licença
 
-Este projeto está sob a licença MIT. Ver o ficheiro `LICENSE` para mais detalhes.
+MIT License - ver ficheiro `LICENSE` para detalhes.
