@@ -13,9 +13,9 @@ newsdotai/
 │   ├── services/          # Serviços de API
 │   ├── config/            # Configuração de ambiente
 │   └── types/             # Definições TypeScript
-├── server/                # Backend NestJS (Proxy API)
+├── server/                # Backend NestJS (Proxy API + Firebase)
 │   ├── src/
-│   │   ├── news/          # Módulo de notícias
+│   │   ├── news/          # Módulo de notícias (API + Firebase)
 │   │   └── main.ts        # Ponto de entrada
 │   └── package.json
 └── package.json           # Frontend package.json
@@ -84,14 +84,29 @@ VITE_BASE=/
 ```env
 # NewsData.io API Key (obrigatório)
 NEWSDATA_API_KEY=sua_chave_do_newsdata.io
+
+# Firebase Admin SDK (obrigatório para gestão de notícias)
+FIREBASE_PROJECT_ID=seu_projeto_id
+FIREBASE_CLIENT_EMAIL=firebase-adminsdk-xxxxx@seu_projeto.iam.gserviceaccount.com
+FIREBASE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\nSua_chave_privada_aqui\n-----END PRIVATE KEY-----\n"
+
+# Port (opcional)
+PORT=3001
 ```
+
+**Nota:** Para obter as credenciais Firebase Admin SDK, vai ao Firebase Console → Project Settings → Service Accounts → Generate new private key.
 
 ## 🌐 Endpoints da API
 
-### Backend NestJS (Proxy)
+### Backend NestJS (Proxy + Firebase)
 
 - `GET /` - Health check
 - `GET /api/news` - Buscar notícias da NewsData.io
+- `POST /api/news/store` - Guardar notícias para utilizador
+- `GET /api/news/feed/:userId` - Buscar notícias guardadas do utilizador
+- `PATCH /api/news/favorite/:userId/:newsId` - Marcar/desmarcar favorito
+- `DELETE /api/news/:userId/:newsId` - Apagar notícia
+- `GET /api/news/stats/:userId` - Estatísticas das notícias guardadas
 
 **Parâmetros suportados:**
 
@@ -125,6 +140,12 @@ curl "http://localhost:3001/api/news?q=technology&language=en"
        match /users/{userId} {
          allow read, write: if request.auth != null && request.auth.uid == userId;
          match /topics/{topicId} {
+           allow read, write: if request.auth != null && request.auth.uid == userId;
+         }
+         match /settings/{settingId} {
+           allow read, write: if request.auth != null && request.auth.uid == userId;
+         }
+         match /news/{newsId} {
            allow read, write: if request.auth != null && request.auth.uid == userId;
          }
          match /settings/{settingId} {

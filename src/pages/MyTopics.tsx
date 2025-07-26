@@ -66,7 +66,7 @@ export default function MyTopics() {
 
   const handleFetchNews = async () => {
     if (items.length === 0) return;
-    await fetchNews(items, useMockData);
+    await fetchNews(items, useMockData, true); // Sempre guarda no backend
   };
 
   const handleClearAll = () => {

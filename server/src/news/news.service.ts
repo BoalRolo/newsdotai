@@ -1,8 +1,22 @@
 import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
 import axios from 'axios';
 import * as dotenv from 'dotenv';
+import * as admin from 'firebase-admin';
 
 dotenv.config();
+
+// Inicializar Firebase Admin se ainda não estiver inicializado
+if (!admin.apps.length) {
+  admin.initializeApp({
+    credential: admin.credential.cert({
+      projectId: process.env.FIREBASE_PROJECT_ID,
+      clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+      privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
+    }),
+  });
+}
+
+const db = admin.firestore();
 
 @Injectable()
 export class NewsService {
@@ -35,6 +49,198 @@ export class NewsService {
       }
       throw new HttpException(
         'Failed to fetch news',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  // Guardar notícias para um utilizador
+  async storeNewsForUser(
+    userId: string,
+    articles: any[],
+    topicId: string,
+    topicLabel: string,
+  ) {
+    try {
+      const newsRef = db.collection('users').doc(userId).collection('news');
+      const savedArticles: any[] = [];
+      const articlesArray = Array.isArray(articles) ? articles : [articles];
+      for (const article of articlesArray) {
+        const docData = {
+          ...article,
+          topicId,
+          topicLabel,
+          userId,
+          createdAt: admin.firestore.FieldValue.serverTimestamp(),
+          updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+          isFavorite: false,
+        };
+
+        const docRef = await newsRef.add(docData);
+        savedArticles.push({ id: docRef.id, ...docData });
+      }
+
+      return savedArticles;
+    } catch (error) {
+      console.error('Error storing news:', error);
+      throw new HttpException(
+        'Failed to store news',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  // Buscar notícias guardadas de um utilizador
+  async getStoredNews(userId: string, filters: any = {}) {
+    try {
+      console.log('[getStoredNews] userId:', userId, 'filters:', filters);
+      let query: any = db.collection('users').doc(userId).collection('news');
+
+      if (filters.topicId) {
+        query = query.where('topicLabel', '==', filters.topicId);
+      }
+      if (filters.isFavorite !== undefined) {
+        const isFavoriteBool =
+          filters.isFavorite === 'true' || filters.isFavorite === true;
+        query = query.where('isFavorite', '==', isFavoriteBool);
+      }
+      if (filters.fromDate) {
+        query = query.where('publishedAt', '>=', filters.fromDate);
+      }
+      if (filters.toDate) {
+        query = query.where('publishedAt', '<=', filters.toDate);
+      }
+      if (filters.keywords) {
+        query = query.where('keywords', 'array-contains', filters.keywords);
+      }
+
+      query = query.orderBy('publishedAt', 'desc');
+
+      const snapshot = await query.get();
+
+      const news: any[] = [];
+      const uniqueTopicIds = new Set<string>();
+      snapshot.forEach((doc) => {
+        const data = doc.data();
+        news.push({ id: doc.id, ...data });
+        if (data.topicId) {
+          uniqueTopicIds.add(data.topicId);
+        }
+      });
+
+      console.log(
+        `[getStoredNews] Found ${news.length} news for user ${userId} with filters`,
+        filters,
+      );
+      console.log(
+        `[getStoredNews] Available topicIds in news:`,
+        Array.from(uniqueTopicIds),
+      );
+      if (filters.topicId) {
+        console.log(
+          `[getStoredNews] Filter topicId: "${filters.topicId}" (type: ${typeof filters.topicId})`,
+        );
+        console.log(
+          `[getStoredNews] Filter topicId exists in available topics:`,
+          uniqueTopicIds.has(filters.topicId),
+        );
+      } else {
+        console.log(
+          `[getStoredNews] No filters applied - all available topicIds:`,
+          Array.from(uniqueTopicIds),
+        );
+      }
+      return news;
+    } catch (error) {
+      console.error('[getStoredNews] Error:', error, 'filters:', filters);
+      throw new HttpException(
+        'Failed to fetch stored news',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  // Marcar/desmarcar favorito
+  async toggleFavorite(userId: string, newsId: string, isFavorite: boolean) {
+    try {
+      console.log(
+        '[toggleFavorite] userId:',
+        userId,
+        'newsId:',
+        newsId,
+        'isFavorite:',
+        isFavorite,
+      );
+      const newsDoc = db
+        .collection('users')
+        .doc(userId)
+        .collection('news')
+        .doc(newsId);
+      await newsDoc.update({
+        isFavorite,
+        updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+      });
+
+      console.log('[toggleFavorite] Successfully updated favorite status');
+      return { success: true, isFavorite };
+    } catch (error) {
+      console.error('[toggleFavorite] Error:', error);
+      throw new HttpException(
+        'Failed to update favorite status',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  // Apagar notícia
+  async deleteNews(userId: string, newsId: string) {
+    try {
+      const newsDoc = db
+        .collection('users')
+        .doc(userId)
+        .collection('news')
+        .doc(newsId);
+      await newsDoc.delete();
+
+      return { success: true };
+    } catch (error) {
+      throw new HttpException(
+        'Failed to delete news',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  // Buscar estatísticas das notícias guardadas
+  async getNewsStats(userId: string) {
+    try {
+      const newsRef = db.collection('users').doc(userId).collection('news');
+      const snapshot = await newsRef.get();
+
+      const total = snapshot.size;
+      const favorites = snapshot.docs.filter(
+        (doc) => doc.data().isFavorite,
+      ).length;
+
+      // Agrupar por tópico
+      const topics: any = {};
+      snapshot.forEach((doc) => {
+        const data = doc.data();
+        const topic = data.topicLabel;
+        if (!topics[topic]) {
+          topics[topic] = 0;
+        }
+        topics[topic]++;
+      });
+
+      return {
+        total,
+        favorites,
+        topics,
+      };
+    } catch (error) {
+      throw new HttpException(
+        'Failed to fetch news statistics',
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }

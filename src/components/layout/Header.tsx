@@ -86,6 +86,20 @@ const Header: React.FC = () => {
             >
               My Topics
             </Link>
+            <Link
+              to="/feed"
+              className={`transition-colors duration-200 ${
+                location.pathname === "/feed"
+                  ? isDarkMode
+                    ? "text-blue-400"
+                    : "text-blue-600"
+                  : isDarkMode
+                  ? "text-slate-300 hover:text-white"
+                  : "text-slate-600 hover:text-slate-900"
+              }`}
+            >
+              Feed
+            </Link>
           </nav>
 
           {/* Right side - Theme and Profile */}

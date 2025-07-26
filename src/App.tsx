@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import Login from "./pages/Login";
 import SignUp from "./pages/SignUp";
 import MyTopics from "./pages/MyTopics";
+import Feed from "./pages/StoredNews";
 import Profile from "./pages/Profile";
 import Header from "./components/layout/Header";
 import { ThemeProvider } from "./components/layout/ThemeContext";
@@ -30,6 +31,14 @@ function AppRoutes() {
           element={
             <ProtectedRoute>
               <MyTopics />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/feed"
+          element={
+            <ProtectedRoute>
+              <Feed />
             </ProtectedRoute>
           }
         />

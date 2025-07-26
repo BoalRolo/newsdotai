@@ -3,6 +3,7 @@ import type { TopicWithNews } from "../types/news";
 import { newsService } from "../services/newsApi";
 import { isApiConfigured } from "../config/env";
 import { getMockNewsForTopic } from "../data/mockNews";
+import { useBackendNews } from "./useBackendNews";
 
 interface UseNewsReturn {
   topicsWithNews: TopicWithNews[];
@@ -10,7 +11,8 @@ interface UseNewsReturn {
   error: string | null;
   fetchNews: (
     topics: Array<{ label: string; topic: string }>,
-    useMock?: boolean
+    useMock?: boolean,
+    saveToStorage?: boolean
   ) => Promise<void>;
   clearNews: () => void;
   isApiKeyConfigured: boolean;
@@ -20,11 +22,13 @@ export const useNews = (): UseNewsReturn => {
   const [topicsWithNews, setTopicsWithNews] = useState<TopicWithNews[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const { saveNews } = useBackendNews();
 
   const fetchNews = useCallback(
     async (
       topics: Array<{ label: string; topic: string }>,
-      useMock = false
+      useMock = false,
+      saveToStorage = false
     ) => {
       // Se usar mock, não precisamos verificar a API key
       if (!useMock && !isApiConfigured()) {
@@ -100,6 +104,20 @@ export const useNews = (): UseNewsReturn => {
         });
 
         setTopicsWithNews(processedResults);
+
+        // Guardar notícias no Firebase se solicitado
+        if (saveToStorage) {
+          try {
+            for (const result of processedResults) {
+              for (const article of result.articles) {
+                await saveNews(article, result.topic, result.label);
+              }
+            }
+          } catch (saveError) {
+            console.error("Erro ao guardar notícias:", saveError);
+            // Não interromper o fluxo se falhar ao guardar
+          }
+        }
       } catch (error) {
         setError(
           error instanceof Error ? error.message : "Failed to fetch news"
@@ -108,7 +126,7 @@ export const useNews = (): UseNewsReturn => {
         setIsLoading(false);
       }
     },
-    []
+    [saveNews]
   );
 
   const clearNews = useCallback(() => {
