@@ -13,7 +13,7 @@ import {
 import { NewsService } from './news.service';
 
 // Guard simples para autenticação (podes implementar um mais robusto depois)
-@Controller('api/news')
+@Controller('news')
 export class NewsController {
   constructor(private readonly newsService: NewsService) {}
 
