@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNews } from "../hooks/useNews";
+import { useUserTopics } from "../hooks/useUserTopics";
 import NewsDisplay from "../components/common/NewsDisplay";
 import CustomDropdown from "../components/common/CustomDropdown";
 import { useTheme } from "../components/layout/ThemeContext";
@@ -9,12 +10,22 @@ export default function MyTopics() {
   const { isDarkMode } = useTheme();
   const [label, setLabel] = useState("");
   const [topic, setTopic] = useState("");
-  const [items, setItems] = useState<{ label: string; topic: string }[]>([]);
   const [useMockData, setUseMockData] = useState(false);
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [editLabel, setEditLabel] = useState("");
   const [editTopic, setEditTopic] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
+
+  // Hook para gerenciar tópicos do usuário no Firestore
+  const {
+    topics: items,
+    loading: topicsLoading,
+    error: topicsError,
+    addTopic,
+    editTopic: editTopicInFirestore,
+    deleteTopic,
+    clearError: clearTopicsError,
+  } = useUserTopics();
 
   const {
     topicsWithNews,
@@ -25,7 +36,7 @@ export default function MyTopics() {
     isApiKeyConfigured,
   } = useNews();
 
-  const handleAdd = () => {
+  const handleAdd = async () => {
     if (!label || !topic) return;
 
     // Check if label already exists
@@ -42,8 +53,15 @@ export default function MyTopics() {
       return;
     }
 
-    setItems([...items, { label, topic }]);
-    setLabel("");
+    try {
+      await addTopic(label, topic);
+      setLabel("");
+      setTopic("");
+      if (errorMessage) setErrorMessage("");
+    } catch (err) {
+      setErrorMessage("Failed to add topic. Please try again.");
+      setTimeout(() => setErrorMessage(""), 3000);
+    }
   };
 
   const handleFetchNews = async () => {
@@ -52,7 +70,6 @@ export default function MyTopics() {
   };
 
   const handleClearAll = () => {
-    setItems([]);
     clearNews();
   };
 
@@ -62,14 +79,19 @@ export default function MyTopics() {
     setEditTopic(items[index].topic);
   };
 
-  const handleSaveEdit = () => {
+  const handleSaveEdit = async () => {
     if (editingIndex !== null && editLabel && editTopic) {
-      const newItems = [...items];
-      newItems[editingIndex] = { label: editLabel, topic: editTopic };
-      setItems(newItems);
-      setEditingIndex(null);
-      setEditLabel("");
-      setEditTopic("");
+      try {
+        const topicToEdit = items[editingIndex];
+        await editTopicInFirestore(topicToEdit.id, editLabel, editTopic);
+        setEditingIndex(null);
+        setEditLabel("");
+        setEditTopic("");
+        if (errorMessage) setErrorMessage("");
+      } catch (err) {
+        setErrorMessage("Failed to update topic. Please try again.");
+        setTimeout(() => setErrorMessage(""), 3000);
+      }
     }
   };
 
@@ -79,10 +101,25 @@ export default function MyTopics() {
     setEditTopic("");
   };
 
-  const handleDelete = (index: number) => {
-    const newItems = items.filter((_, i) => i !== index);
-    setItems(newItems);
+  const handleDelete = async (index: number) => {
+    try {
+      const topicToDelete = items[index];
+      await deleteTopic(topicToDelete.id);
+      if (errorMessage) setErrorMessage("");
+    } catch (err) {
+      setErrorMessage("Failed to delete topic. Please try again.");
+      setTimeout(() => setErrorMessage(""), 3000);
+    }
   };
+
+  // Clear error messages when topics error changes
+  if (topicsError && !errorMessage) {
+    setErrorMessage(topicsError);
+    setTimeout(() => {
+      setErrorMessage("");
+      clearTopicsError();
+    }, 3000);
+  }
 
   return (
     <div
@@ -226,16 +263,20 @@ export default function MyTopics() {
           <div className="flex flex-col gap-4 mt-6">
             <button
               onClick={handleAdd}
-              disabled={!label || !topic}
+              disabled={!label || !topic || topicsLoading}
               className={isDarkMode ? "btn-primary" : "btn-primary-light"}
             >
               <div className="flex items-center justify-center space-x-2">
-                <div
-                  className={`w-5 h-5 border-2 rounded-sm ${
-                    isDarkMode ? "border-white/80" : "border-white/90"
-                  }`}
-                ></div>
-                <span>ADD TOPIC</span>
+                {topicsLoading ? (
+                  <div className="w-5 h-5 border-2 border-white/80 border-t-transparent rounded-full animate-spin"></div>
+                ) : (
+                  <div
+                    className={`w-5 h-5 border-2 rounded-sm ${
+                      isDarkMode ? "border-white/80" : "border-white/90"
+                    }`}
+                  ></div>
+                )}
+                <span>{topicsLoading ? "ADDING..." : "ADD TOPIC"}</span>
               </div>
             </button>
             <button
@@ -335,22 +376,20 @@ export default function MyTopics() {
           >
             <p className="font-medium">⚠️ API Key Required</p>
             <p className="text-sm mt-1">
-              Please add your NewsData.io API key to the environment variables
-              (VITE_NEWSDATA_API_KEY) or use Mock Data for testing
+              Please add your News API key to the environment variables
+              (VITE_NEWS_API_KEY) or use Mock Data for testing
             </p>
           </div>
         )}
 
         {/* Error Display */}
         {error && (
-          <div
-            className={`p-4 rounded-2xl border ${
-              isDarkMode
-                ? "bg-red-900/20 border-red-700/50 text-red-300"
-                : "bg-red-50 border-red-200 text-red-700"
-            }`}
-          >
-            <p className="font-medium">Error: {error}</p>
+          <div className="text-red-500 text-center p-4 bg-red-50 dark:bg-red-900/20 rounded-xl">
+            <p className="font-medium">⚠️ API Key Required</p>
+            <p className="text-sm mt-1">
+              Please add your News API key to the environment variables
+              (VITE_NEWS_API_KEY) or use Mock Data for testing
+            </p>
           </div>
         )}
 
@@ -386,7 +425,7 @@ export default function MyTopics() {
             <div className="space-y-3">
               {items.map((item, idx) => (
                 <div
-                  key={idx}
+                  key={item.id}
                   className={`p-4 rounded-2xl transition-all duration-300 hover:scale-[1.02] ${
                     isDarkMode
                       ? "bg-slate-800/30 border border-slate-700 text-white"

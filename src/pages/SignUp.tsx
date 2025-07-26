@@ -1,14 +1,10 @@
-import React, { useState, useEffect, forwardRef } from "react";
+import React, { useState, useEffect } from "react";
 import { useAuth } from "../hooks/useAuth";
-import "react-datepicker/dist/react-datepicker.css";
 import { doc, getDoc } from "firebase/firestore";
 import { db } from "../config/firebase";
 import { useNavigate } from "react-router-dom";
 import { useTheme } from "../components/layout/ThemeContext";
 import "../styles/ui.css";
-import DatePicker from "react-datepicker";
-
-console.log("SIGNUP PAGE LOADED");
 
 function validatePassword(password: string): string[] {
   const errors: string[] = [];
@@ -20,22 +16,6 @@ function validatePassword(password: string): string[] {
   return errors;
 }
 
-const CustomDateInput = forwardRef<
-  HTMLButtonElement,
-  { value?: string; onClick?: () => void; placeholder?: string }
->(({ value, onClick, placeholder }, ref) => (
-  <button
-    type="button"
-    onClick={onClick}
-    ref={ref}
-    className={`w-full px-4 py-3 rounded-xl border-2 transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-blue-500/20 bg-slate-700/50 text-white border-slate-600/50 placeholder-slate-400 focus:border-blue-500/50 dark:bg-slate-700/50 dark:text-white dark:border-slate-600/50 dark:placeholder-slate-400 dark:focus:border-blue-500/50`}
-    style={{ textAlign: "left", width: "100%", height: "48px" }}
-  >
-    {value || placeholder}
-  </button>
-));
-CustomDateInput.displayName = "CustomDateInput";
-
 const SignUp: React.FC = () => {
   const { user, loading, error, signUp, signIn } = useAuth();
   const { isDarkMode } = useTheme();
@@ -45,7 +25,7 @@ const SignUp: React.FC = () => {
   const [usernameStatus, setUsernameStatus] = useState<
     null | "checking" | "taken" | "available"
   >(null);
-  const [dob, setDob] = useState<Date | null>(null);
+  const [dob, setDob] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [retypePassword, setRetypePassword] = useState("");
@@ -96,19 +76,6 @@ const SignUp: React.FC = () => {
   }, [isDarkMode]);
 
   useEffect(() => {
-    // Add dark class to datepicker popper
-    const interval = setInterval(() => {
-      const popper = document.querySelector(".react-datepicker-popper");
-      if (popper) {
-        if (isDarkMode) popper.classList.add("dark");
-        else popper.classList.remove("dark");
-        clearInterval(interval);
-      }
-    }, 100);
-    return () => clearInterval(interval);
-  }, [isDarkMode, dob]);
-
-  useEffect(() => {
     if (user) {
       navigate("/home");
     }
@@ -136,7 +103,7 @@ const SignUp: React.FC = () => {
       }
       await signUp({
         username,
-        dob: dob!.toISOString().slice(0, 10),
+        dob: dob,
         email,
         password,
       });
@@ -240,22 +207,18 @@ const SignUp: React.FC = () => {
                     </span>
                   )}
                 </div>
-                <div className="w-full flex flex-col min-w-0">
-                  <DatePicker
-                    selected={dob}
-                    onChange={(date: Date | null) => setDob(date)}
-                    dateFormat="yyyy-MM-dd"
-                    placeholderText="Date of Birth"
-                    maxDate={new Date()}
-                    showMonthDropdown
-                    showYearDropdown
-                    dropdownMode="select"
-                    customInput={
-                      <CustomDateInput placeholder="Date of Birth" />
-                    }
-                    required
-                  />
-                </div>
+                <input
+                  type="date"
+                  placeholder="Date of Birth"
+                  value={dob}
+                  onChange={(e) => setDob(e.target.value)}
+                  className={`w-full px-4 py-3 rounded-xl border-2 transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-blue-500/20 ${
+                    isDarkMode
+                      ? "bg-slate-700/50 text-white border-slate-600/50 placeholder-slate-400 focus:border-blue-500/50"
+                      : "bg-slate-50 text-slate-900 border-slate-200 placeholder-slate-500 focus:border-blue-500"
+                  }`}
+                  required
+                />
                 <input
                   type="email"
                   placeholder="Email"

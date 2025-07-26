@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
+import { useUserSettings } from "../../hooks/useUserSettings";
 
 interface ThemeContextType {
   isDarkMode: boolean;
@@ -10,11 +11,18 @@ const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
-  const [isDarkMode, setIsDarkMode] = useState(() => {
-    const saved = localStorage.getItem("darkMode");
-    return saved ? JSON.parse(saved) : true;
-  });
+  const { settings, updateTheme } = useUserSettings();
+  const [isDarkMode, setIsDarkMode] = useState(true);
 
+  // Sincronizar com as configurações do Firestore
+  useEffect(() => {
+    if (settings?.theme) {
+      // Converter tema para boolean (dark = true, light = false)
+      setIsDarkMode(settings.theme === "dark");
+    }
+  }, [settings?.theme]);
+
+  // Aplicar tema ao DOM
   useEffect(() => {
     setTimeout(() => {
       if (isDarkMode) {
@@ -23,11 +31,20 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({
         document.documentElement.classList.remove("dark");
       }
       localStorage.setItem("darkMode", JSON.stringify(isDarkMode));
-      console.log("ThemeContext: isDarkMode =", isDarkMode);
     }, 0);
   }, [isDarkMode]);
 
-  const toggleDarkMode = () => setIsDarkMode((prev: boolean) => !prev);
+  const toggleDarkMode = async () => {
+    const newDarkMode = !isDarkMode;
+    setIsDarkMode(newDarkMode);
+
+    // Salvar no Firebase
+    try {
+      await updateTheme(newDarkMode ? "dark" : "light");
+    } catch (error) {
+      console.error("Failed to update theme in Firebase:", error);
+    }
+  };
 
   return (
     <ThemeContext.Provider value={{ isDarkMode, toggleDarkMode }}>

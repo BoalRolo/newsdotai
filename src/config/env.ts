@@ -1,51 +1,53 @@
-// Configuração centralizada das variáveis de ambiente
-export const env = {
+// Environment configuration
+export const config = {
   // API Configuration
-  NEWS_API_KEY: import.meta.env.VITE_NEWSDATA_API_KEY || "",
-  NEWS_API_BASE_URL:
-    import.meta.env.VITE_NEWSDATA_API_BASE_URL ||
-    "https://newsdata.io/api/1/news",
+  apiKey: import.meta.env.VITE_NEWS_API_KEY || "",
+  baseUrl: import.meta.env.VITE_NEWS_API_BASE_URL || "https://newsapi.org/v2",
 
-  // Environment
-  NODE_ENV: import.meta.env.NODE_ENV || "development",
-  IS_DEV: import.meta.env.DEV,
-  IS_PROD: import.meta.env.PROD,
-} as const;
+  // Firebase Configuration
+  firebase: {
+    apiKey: import.meta.env.VITE_FIREBASE_API_KEY || "",
+    authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || "",
+    projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || "",
+    storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || "",
+    messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || "",
+    appId: import.meta.env.VITE_FIREBASE_APP_ID || "",
+  },
 
-// Log das variáveis de ambiente (apenas em desenvolvimento)
-if (import.meta.env.DEV) {
-  console.log("🔧 Environment Configuration:", {
-    hasApiKey: !!env.NEWS_API_KEY,
-    apiKeyLength: env.NEWS_API_KEY.length,
-    apiBaseUrl: env.NEWS_API_BASE_URL,
-    nodeEnv: env.NODE_ENV,
-  });
-}
+  // App Configuration
+  isDevelopment: import.meta.env.DEV,
+  isProduction: import.meta.env.PROD,
+};
 
-// Validação das variáveis obrigatórias
-export const validateEnv = () => {
-  const requiredVars = ["VITE_NEWSDATA_API_KEY"] as const;
+// Validate required environment variables
+export const validateConfig = () => {
+  const requiredVars = [
+    "VITE_NEWS_API_KEY",
+    "VITE_FIREBASE_API_KEY",
+    "VITE_FIREBASE_AUTH_DOMAIN",
+    "VITE_FIREBASE_PROJECT_ID",
+  ];
+
   const missingVars = requiredVars.filter(
     (varName) => !import.meta.env[varName]
   );
 
   if (missingVars.length > 0) {
-    console.warn("Missing required environment variables:", missingVars);
-    return false;
+    throw new Error(
+      `Missing required environment variables: ${missingVars.join(", ")}`
+    );
   }
-
-  return true;
 };
 
-// Helper para verificar se a API está configurada
+// Check if API key is configured
 export const isApiConfigured = () => {
-  const configured = !!env.NEWS_API_KEY;
-  console.log("🔑 API Configuration check:", {
-    configured,
-    keyLength: env.NEWS_API_KEY.length,
-    keyPreview: env.NEWS_API_KEY
-      ? `${env.NEWS_API_KEY.substring(0, 8)}...`
-      : "none",
-  });
-  return configured;
+  return !!config.apiKey && config.apiKey !== "";
+};
+
+// Get base URL for different environments
+export const getBaseUrl = () => {
+  if (config.isProduction) {
+    return "/newsdotai";
+  }
+  return "/";
 };

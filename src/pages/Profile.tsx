@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { useAuth } from "../hooks/useAuth";
+import { useTheme } from "../components/layout/ThemeContext";
 import { db } from "../config/firebase";
 import { doc, getDoc, updateDoc, setDoc, deleteDoc } from "firebase/firestore";
 import {
@@ -8,7 +9,6 @@ import {
   reauthenticateWithCredential,
   EmailAuthProvider,
 } from "firebase/auth";
-import { useTheme } from "../components/layout/ThemeContext";
 import "../styles/ui.css";
 
 export const ProfilePage: React.FC = () => {
@@ -100,15 +100,23 @@ export const ProfilePage: React.FC = () => {
     }
   };
 
-  function validatePassword(password: string): string[] {
+  // Password validation
+  const validatePassword = (password: string): string[] => {
     const errors: string[] = [];
-    if (password.length < 8) errors.push("At least 8 characters");
-    if (!/[A-Z]/.test(password)) errors.push("One uppercase letter");
-    if (!/[a-z]/.test(password)) errors.push("One lowercase letter");
-    if (!/[0-9]/.test(password)) errors.push("One number");
-    if (!/[^A-Za-z0-9]/.test(password)) errors.push("One special character");
+    if (password.length < 6) {
+      errors.push("Password must be at least 6 characters long");
+    }
+    if (!/[A-Z]/.test(password)) {
+      errors.push("Password must contain at least one uppercase letter");
+    }
+    if (!/[a-z]/.test(password)) {
+      errors.push("Password must contain at least one lowercase letter");
+    }
+    if (!/\d/.test(password)) {
+      errors.push("Password must contain at least one number");
+    }
     return errors;
-  }
+  };
 
   const passwordErrors = validatePassword(newPassword);
 
@@ -116,7 +124,7 @@ export const ProfilePage: React.FC = () => {
   const avatarUrl =
     user?.photoURL ||
     "https://ui-avatars.com/api/?name=" +
-      (user?.email?.[0]?.toUpperCase() || "U");
+      (username?.[0]?.toUpperCase() || user?.email?.[0]?.toUpperCase() || "U");
 
   return (
     <div
@@ -181,6 +189,7 @@ export const ProfilePage: React.FC = () => {
             </span>
           </div>
         </div>
+
         {/* Theme Card */}
         <section
           className={`mb-6 rounded-2xl border ${
@@ -227,225 +236,203 @@ export const ProfilePage: React.FC = () => {
             </button>
           </div>
         </section>
+
         {/* Username Card */}
-        <section
-          className={`mb-6 rounded-2xl border ${
-            isDarkMode
-              ? "bg-slate-800/30 border-slate-700"
-              : "bg-white/90 border-slate-200"
-          } p-6`}
-        >
+        <section className="mb-8">
           <h3
             className={
               isDarkMode
-                ? "text-lg font-bold mb-1"
-                : "text-lg font-bold mb-1 text-slate-900"
+                ? "text-lg font-bold mb-4"
+                : "text-lg font-bold mb-4 text-slate-900"
             }
           >
-            Change Username
+            Username Settings
           </h3>
-          <label
-            htmlFor="username"
-            className={
-              isDarkMode
-                ? "block text-sm font-medium mb-2"
-                : "block text-sm font-medium mb-2 text-slate-900"
-            }
-          >
-            New username
-          </label>
-          <input
-            id="new-username"
-            name="new-username"
-            type="text"
-            autoComplete="nope"
-            className={
-              isDarkMode
-                ? "w-full px-4 py-3 rounded-xl border border-slate-300 dark:border-slate-600 bg-slate-100 dark:bg-slate-700 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 mb-4"
-                : "input-light mb-4"
-            }
-            placeholder="New username"
-            value={newUsername}
-            onChange={(e) =>
-              setNewUsername(
-                e.target.value.replace(/[^a-z0-9_]/g, "").toLowerCase()
-              )
-            }
-            disabled={saving}
-          />
-          {newUsername && (
-            <span className="text-xs ml-2">
-              {usernameStatus === "checking" && "Checking..."}
-              {usernameStatus === "taken" && (
-                <span className="text-red-500">Taken</span>
+          <div className="space-y-4">
+            <div>
+              <label
+                className={
+                  isDarkMode
+                    ? "block text-sm font-medium mb-2"
+                    : "block text-sm font-medium mb-2 text-slate-700"
+                }
+              >
+                Current Username
+              </label>
+              <input
+                type="text"
+                value={username}
+                disabled
+                className={
+                  isDarkMode
+                    ? "w-full px-4 py-3 rounded-xl border border-slate-600 bg-slate-700 text-slate-300 cursor-not-allowed"
+                    : "w-full px-4 py-3 rounded-xl border border-slate-300 bg-slate-100 text-slate-500 cursor-not-allowed"
+                }
+              />
+            </div>
+            <div>
+              <label
+                className={
+                  isDarkMode
+                    ? "block text-sm font-medium mb-2"
+                    : "block text-sm font-medium mb-2 text-slate-700"
+                }
+              >
+                New Username
+              </label>
+              <input
+                type="text"
+                value={newUsername}
+                onChange={(e) => setNewUsername(e.target.value)}
+                className={
+                  isDarkMode
+                    ? "w-full px-4 py-3 rounded-xl border border-slate-600 bg-slate-700 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    : "w-full px-4 py-3 rounded-xl border border-slate-300 bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                }
+                placeholder="Enter new username"
+              />
+              {usernameStatus === "checking" && (
+                <p className="text-blue-500 text-sm mt-1">
+                  Checking availability...
+                </p>
               )}
               {usernameStatus === "available" && (
-                <span className="text-green-500">Available</span>
+                <p className="text-green-500 text-sm mt-1">
+                  Username available!
+                </p>
               )}
-            </span>
-          )}
-          <button
-            className={
-              isDarkMode ? "btn-primary mt-2" : "btn-primary-light mt-2"
-            }
-            onClick={handleSaveUsername}
-            disabled={saving}
-          >
-            {saving ? "Saving..." : "Save"}
-          </button>
-          {saveMsg && (
-            <div className="text-xs mt-2 text-green-500">{saveMsg}</div>
-          )}
+              {usernameStatus === "taken" && (
+                <p className="text-red-500 text-sm mt-1">
+                  Username already taken
+                </p>
+              )}
+            </div>
+            <button
+              onClick={handleSaveUsername}
+              disabled={!newUsername || usernameStatus === "taken" || saving}
+              className={isDarkMode ? "btn-primary" : "btn-primary-light"}
+            >
+              {saving ? "Saving..." : "Update Username"}
+            </button>
+            {saveMsg && (
+              <div className="text-xs mt-2 text-green-500">{saveMsg}</div>
+            )}
+          </div>
         </section>
+
         {/* Password Card */}
-        <section
-          className={`rounded-2xl border ${
-            isDarkMode
-              ? "bg-slate-800/30 border-slate-700"
-              : "bg-white/90 border-slate-200"
-          } p-6`}
-        >
+        <section>
           <h3
             className={
               isDarkMode
-                ? "text-lg font-bold mb-1"
-                : "text-lg font-bold mb-1 text-slate-900"
+                ? "text-lg font-bold mb-4"
+                : "text-lg font-bold mb-4 text-slate-900"
             }
           >
-            Change Password
+            Password Settings
           </h3>
-          <label
-            className={
-              isDarkMode
-                ? "block text-sm font-medium mb-2"
-                : "block text-sm font-medium mb-2 text-slate-900"
-            }
-          >
-            Current password
-          </label>
-          <input
-            type="password"
-            autoComplete="current-password"
-            className={
-              isDarkMode
-                ? "w-full px-4 py-3 rounded-xl border border-slate-300 dark:border-slate-600 bg-slate-100 dark:bg-slate-700 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 mb-2"
-                : "input-light mb-2"
-            }
-            placeholder="Current password"
-            value={currentPassword}
-            onChange={(e) => setCurrentPassword(e.target.value)}
-            disabled={passwordSaving}
-          />
-          <label
-            className={
-              isDarkMode
-                ? "block text-sm font-medium mb-2"
-                : "block text-sm font-medium mb-2 text-slate-900"
-            }
-          >
-            New password
-          </label>
-          <input
-            type="password"
-            autoComplete="new-password"
-            className={
-              isDarkMode
-                ? "w-full px-4 py-3 rounded-xl border border-slate-300 dark:border-slate-600 bg-slate-100 dark:bg-slate-700 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 mb-2"
-                : "input-light mb-2"
-            }
-            placeholder="New password"
-            value={newPassword}
-            onChange={(e) => setNewPassword(e.target.value)}
-            disabled={passwordSaving}
-          />
-          {newPassword && (
-            <ul className="mt-1 ml-2 text-xs text-slate-400 space-y-0.5">
-              <li
+          <div className="space-y-4">
+            <div>
+              <label
                 className={
-                  newPassword.length >= 8 ? "text-green-500" : "text-red-500"
+                  isDarkMode
+                    ? "block text-sm font-medium mb-2"
+                    : "block text-sm font-medium mb-2 text-slate-700"
                 }
               >
-                At least 8 characters
-              </li>
-              <li
+                Current Password
+              </label>
+              <input
+                type="password"
+                value={currentPassword}
+                onChange={(e) => setCurrentPassword(e.target.value)}
                 className={
-                  /[A-Z]/.test(newPassword) ? "text-green-500" : "text-red-500"
+                  isDarkMode
+                    ? "w-full px-4 py-3 rounded-xl border border-slate-600 bg-slate-700 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    : "w-full px-4 py-3 rounded-xl border border-slate-300 bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                }
+                placeholder="Enter current password"
+              />
+            </div>
+            <div>
+              <label
+                className={
+                  isDarkMode
+                    ? "block text-sm font-medium mb-2"
+                    : "block text-sm font-medium mb-2 text-slate-700"
                 }
               >
-                One uppercase letter
-              </li>
-              <li
+                New Password
+              </label>
+              <input
+                type="password"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
                 className={
-                  /[a-z]/.test(newPassword) ? "text-green-500" : "text-red-500"
+                  isDarkMode
+                    ? "w-full px-4 py-3 rounded-xl border border-slate-600 bg-slate-700 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    : "w-full px-4 py-3 rounded-xl border border-slate-300 bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 }
-              >
-                One lowercase letter
-              </li>
-              <li
-                className={
-                  /[0-9]/.test(newPassword) ? "text-green-500" : "text-red-500"
-                }
-              >
-                One number
-              </li>
-              <li
-                className={
-                  /[^A-Za-z0-9]/.test(newPassword)
-                    ? "text-green-500"
-                    : "text-red-500"
-                }
-              >
-                One special character
-              </li>
-            </ul>
-          )}
-          <button
-            className={
-              isDarkMode ? "btn-primary mt-2" : "btn-primary-light mt-2"
-            }
-            onClick={async () => {
-              setPasswordMsg("");
-              setPasswordSaving(true);
-              try {
-                if (!user) throw new Error("User not found");
-                if (passwordErrors.length > 0) {
-                  setPasswordMsg("Password does not meet requirements.");
-                  setPasswordSaving(false);
-                  return;
-                }
-                const credential = EmailAuthProvider.credential(
-                  user.email!,
-                  currentPassword
-                );
-                await reauthenticateWithCredential(user, credential);
-                await updatePassword(user, newPassword);
-                setPasswordMsg("Password updated!");
-                setCurrentPassword("");
-                setNewPassword("");
-              } catch (err: any) {
-                if (err.code === "auth/wrong-password") {
-                  setPasswordMsg("Current password is incorrect.");
-                } else if (err.code === "auth/weak-password") {
-                  setPasswordMsg("Password should be at least 6 characters.");
-                } else {
-                  setPasswordMsg("Error updating password: " + err.message);
-                }
-              } finally {
-                setPasswordSaving(false);
+                placeholder="Enter new password"
+              />
+              {passwordErrors.length > 0 && (
+                <div className="mt-2">
+                  {passwordErrors.map((error, index) => (
+                    <p key={index} className="text-red-500 text-sm">
+                      • {error}
+                    </p>
+                  ))}
+                </div>
+              )}
+            </div>
+            <button
+              className={
+                isDarkMode ? "btn-primary mt-2" : "btn-primary-light mt-2"
               }
-            }}
-            disabled={
-              passwordSaving ||
-              !currentPassword ||
-              !newPassword ||
-              passwordErrors.length > 0
-            }
-          >
-            {passwordSaving ? "Saving..." : "Change Password"}
-          </button>
-          {passwordMsg && (
-            <div className="text-xs mt-2 text-green-500">{passwordMsg}</div>
-          )}
+              onClick={async () => {
+                setPasswordMsg("");
+                setPasswordSaving(true);
+                try {
+                  if (!user) throw new Error("User not found");
+                  if (passwordErrors.length > 0) {
+                    setPasswordMsg("Password does not meet requirements.");
+                    setPasswordSaving(false);
+                    return;
+                  }
+                  const credential = EmailAuthProvider.credential(
+                    user.email!,
+                    currentPassword
+                  );
+                  await reauthenticateWithCredential(user, credential);
+                  await updatePassword(user, newPassword);
+                  setPasswordMsg("Password updated!");
+                  setCurrentPassword("");
+                  setNewPassword("");
+                } catch (err: any) {
+                  if (err.code === "auth/wrong-password") {
+                    setPasswordMsg("Current password is incorrect.");
+                  } else if (err.code === "auth/weak-password") {
+                    setPasswordMsg("Password should be at least 6 characters.");
+                  } else {
+                    setPasswordMsg("Error updating password: " + err.message);
+                  }
+                } finally {
+                  setPasswordSaving(false);
+                }
+              }}
+              disabled={
+                passwordSaving ||
+                !currentPassword ||
+                !newPassword ||
+                passwordErrors.length > 0
+              }
+            >
+              {passwordSaving ? "Saving..." : "Change Password"}
+            </button>
+            {passwordMsg && (
+              <div className="text-xs mt-2 text-green-500">{passwordMsg}</div>
+            )}
+          </div>
         </section>
       </div>
     </div>

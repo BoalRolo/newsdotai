@@ -191,12 +191,12 @@ export default function NewsDisplay({
                             ? "text-blue-400 hover:text-blue-300"
                             : "text-blue-600 hover:text-blue-500"
                         }`}
-                        onClick={(e) => {
-                          console.log("🔗 Clicking link:", article.url);
-                          if (!article.url || article.url.trim() === "") {
-                            e.preventDefault();
-                            console.warn("⚠️ Empty URL, preventing navigation");
-                          }
+                        onClick={() => {
+                          window.open(
+                            article.url,
+                            "_blank",
+                            "noopener,noreferrer"
+                          );
                         }}
                       >
                         Ler mais

@@ -1,178 +1,221 @@
-import React, { useState, useEffect, useRef } from "react";
-import { useAuth } from "../../hooks/useAuth";
+import React, { useState, useEffect } from "react";
 import { useNavigate, Link, useLocation } from "react-router-dom";
 import { db } from "../../config/firebase";
 import { doc, onSnapshot } from "firebase/firestore";
+import { useAuth } from "../../hooks/useAuth";
+import { useTheme } from "./ThemeContext";
 
 const Header: React.FC = () => {
+  const { isDarkMode, toggleDarkMode } = useTheme();
   const { user, signOutUser } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
-  const [username, setUsername] = useState<string | null>(null);
-  const [dropdownOpen, setDropdownOpen] = useState(false);
-  const dropdownRef = useRef<HTMLDivElement>(null);
+  const [username, setUsername] = useState("");
+  const [showDropdown, setShowDropdown] = useState(false);
 
-  // Fetch username from Firestore if available
   useEffect(() => {
-    let unsubscribe: (() => void) | undefined;
-    if (user?.uid) {
-      const userDocRef = doc(db, "users", user.uid);
-      unsubscribe = onSnapshot(userDocRef, (userDoc) => {
-        if (userDoc.exists()) {
-          setUsername(userDoc.data().username);
-        } else {
-          setUsername(null);
+    if (user) {
+      const unsubscribe = onSnapshot(
+        doc(db, "users", user.uid),
+        (doc) => {
+          if (doc.exists()) {
+            setUsername(doc.data().username || "");
+          }
+        },
+        (error) => {
+          console.error("Error fetching username:", error);
         }
-      });
-    } else {
-      setUsername(null);
+      );
+
+      return () => unsubscribe();
     }
-    return () => {
-      if (unsubscribe) unsubscribe();
-    };
   }, [user]);
 
-  // Fechar dropdown ao clicar fora
-  useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      if (
-        dropdownRef.current &&
-        !dropdownRef.current.contains(event.target as Node)
-      ) {
-        setDropdownOpen(false);
-      }
-    }
-    if (dropdownOpen) {
-      document.addEventListener("mousedown", handleClickOutside);
-    } else {
-      document.removeEventListener("mousedown", handleClickOutside);
-    }
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, [dropdownOpen]);
-
-  // Placeholder avatar (could be replaced with user photoURL)
-  const avatarUrl =
-    user?.photoURL ||
-    "https://ui-avatars.com/api/?name=" +
-      (username?.[0]?.toUpperCase() || user?.email?.[0]?.toUpperCase() || "U");
+  const handleSignOut = async () => {
+    await signOutUser();
+    navigate("/");
+  };
 
   return (
-    <header className="w-full flex items-center justify-between px-6 py-4 bg-white dark:bg-slate-900 shadow-lg z-10">
-      {/* App Title/Logo */}
-      <div
-        className="flex items-center space-x-3 cursor-pointer select-none"
-        onClick={() => navigate("/home")}
-      >
-        <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-600 via-purple-600 to-indigo-700 flex items-center justify-center">
-          <span className="text-white font-bold text-lg">N</span>
-        </div>
-        <span className="text-2xl font-bold bg-gradient-to-r from-white via-gray-200 to-gray-400 bg-clip-text text-transparent select-none">
-          NEWS.AI
-        </span>
-      </div>
-      {/* Profile Section + My Topics */}
-      <div className="flex items-center space-x-4">
-        <Link
-          to="/mytopics"
-          className={`font-semibold px-4 py-2 rounded-xl transition-colors duration-200 ${
-            location.pathname === "/mytopics"
-              ? "text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-slate-800"
-              : "text-slate-700 dark:text-slate-200 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-slate-800"
-          }`}
-        >
-          My Topics
-        </Link>
-        {user && (
-          <div className="relative" ref={dropdownRef}>
-            <button
-              onClick={() => setDropdownOpen((open) => !open)}
-              className="flex items-center gap-2 px-4 py-2 rounded-full bg-slate-800 text-white font-semibold shadow hover:bg-slate-700 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-400"
+    <header
+      className={`sticky top-0 z-50 backdrop-blur-md border-b transition-all duration-300 ${
+        isDarkMode
+          ? "bg-slate-900/80 border-slate-700"
+          : "bg-white/80 border-slate-200"
+      }`}
+    >
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex justify-between items-center h-16">
+          {/* Logo */}
+          <Link
+            to="/home"
+            className={`text-xl font-bold transition-colors duration-200 ${
+              isDarkMode ? "text-white" : "text-slate-900"
+            }`}
+          >
+            NEWS.AI
+          </Link>
+
+          {/* Navigation */}
+          <nav className="hidden md:flex space-x-8">
+            <Link
+              to="/home"
+              className={`transition-colors duration-200 ${
+                location.pathname === "/home"
+                  ? isDarkMode
+                    ? "text-blue-400"
+                    : "text-blue-600"
+                  : isDarkMode
+                  ? "text-slate-300 hover:text-white"
+                  : "text-slate-600 hover:text-slate-900"
+              }`}
             >
-              <img
-                src={avatarUrl}
-                alt="avatar"
-                className="w-8 h-8 rounded-full object-cover border-2 border-blue-500"
-              />
-              <span className="hidden sm:block max-w-[120px] truncate">
-                {username}
-              </span>
-              <svg
-                className={`w-4 h-4 ml-1 transition-transform ${
-                  dropdownOpen ? "rotate-180" : "rotate-0"
-                }`}
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M19 9l-7 7-7-7"
-                />
-              </svg>
+              Home
+            </Link>
+            <Link
+              to="/mytopics"
+              className={`transition-colors duration-200 ${
+                location.pathname === "/mytopics"
+                  ? isDarkMode
+                    ? "text-blue-400"
+                    : "text-blue-600"
+                  : isDarkMode
+                  ? "text-slate-300 hover:text-white"
+                  : "text-slate-600 hover:text-slate-900"
+              }`}
+            >
+              My Topics
+            </Link>
+          </nav>
+
+          {/* Right side - Theme and Profile */}
+          <div className="flex items-center space-x-4">
+            {/* Theme Toggle */}
+            <button
+              onClick={toggleDarkMode}
+              className={`p-2 rounded-lg transition-all duration-200 ${
+                isDarkMode
+                  ? "hover:bg-slate-800 text-slate-300"
+                  : "hover:bg-slate-100 text-slate-600"
+              }`}
+              aria-label="Toggle dark mode"
+            >
+              {isDarkMode ? (
+                <span className="text-lg">☀️</span>
+              ) : (
+                <span className="text-lg">🌙</span>
+              )}
             </button>
-            {dropdownOpen && (
-              <div className="absolute right-0 mt-2 w-44 bg-white dark:bg-slate-800 rounded-xl shadow-lg ring-1 ring-black/10 z-50 animate-fade-in">
-                <button
-                  onClick={() => {
-                    setDropdownOpen(false);
-                    navigate("/profile");
-                  }}
-                  className="w-full flex items-center gap-2 px-4 py-2 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-t-xl transition-colors"
+
+            {/* Profile Dropdown */}
+            <div className="relative">
+              <button
+                onClick={() => setShowDropdown(!showDropdown)}
+                className={`flex items-center space-x-2 p-2 rounded-lg transition-all duration-200 ${
+                  isDarkMode
+                    ? "hover:bg-slate-800 text-slate-300"
+                    : "hover:bg-slate-100 text-slate-600"
+                }`}
+              >
+                <div className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center text-white font-medium">
+                  {username?.[0]?.toUpperCase() ||
+                    user?.email?.[0]?.toUpperCase() ||
+                    "U"}
+                </div>
+                <span className="hidden sm:block font-medium">
+                  {username || user?.email}
+                </span>
+                <svg
+                  className={`w-4 h-4 transition-transform duration-200 ${
+                    showDropdown ? "rotate-180" : ""
+                  }`}
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
                 >
-                  <svg
-                    className="w-5 h-5"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M5.121 17.804A13.937 13.937 0 0112 15c2.5 0 4.847.655 6.879 1.804M15 10a3 3 0 11-6 0 3 3 0 016 0z"
-                    />
-                  </svg>
-                  Profile
-                </button>
-                <button
-                  onClick={async () => {
-                    await signOutUser();
-                    navigate("/");
-                  }}
-                  className="w-full flex items-center gap-2 px-4 py-2 text-red-600 hover:bg-red-50 dark:hover:bg-red-900 rounded-b-xl transition-colors"
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M19 9l-7 7-7-7"
+                  />
+                </svg>
+              </button>
+
+              {/* Profile Dropdown Menu */}
+              {showDropdown && (
+                <div
+                  className={`absolute right-0 mt-2 w-56 rounded-xl shadow-lg border transition-all duration-200 ${
+                    isDarkMode
+                      ? "bg-slate-800 border-slate-700"
+                      : "bg-white border-slate-200"
+                  }`}
                 >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-5 w-5"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a2 2 0 01-2 2H7a2 2 0 01-2-2V7a2 2 0 012-2h4a2 2 0 012 2v1"
-                    />
-                  </svg>
-                  Sign Out
-                </button>
-              </div>
-            )}
+                  <div className="py-2">
+                    <Link
+                      to="/profile"
+                      className={`flex items-center px-4 py-3 transition-colors duration-200 ${
+                        isDarkMode
+                          ? "text-slate-300 hover:bg-slate-700"
+                          : "text-slate-700 hover:bg-slate-100"
+                      }`}
+                      onClick={() => setShowDropdown(false)}
+                    >
+                      <svg
+                        className="w-5 h-5 mr-3"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                        />
+                      </svg>
+                      Profile Settings
+                    </Link>
+                    <button
+                      onClick={handleSignOut}
+                      className={`w-full flex items-center px-4 py-3 text-left transition-colors duration-200 ${
+                        isDarkMode
+                          ? "text-red-400 hover:bg-red-900/20"
+                          : "text-red-600 hover:bg-red-50"
+                      }`}
+                    >
+                      <svg
+                        className="w-5 h-5 mr-3"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
+                        />
+                      </svg>
+                      Sign Out
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
-        )}
+        </div>
       </div>
+
+      {/* Close dropdown when clicking outside */}
+      {showDropdown && (
+        <div
+          className="fixed inset-0 z-40"
+          onClick={() => setShowDropdown(false)}
+        />
+      )}
     </header>
   );
 };
 
 export default Header;
-
-// Tailwind animation
-// Add this to your global CSS if not present:
-// @keyframes fade-in { from { opacity: 0; transform: translateY(-8px);} to { opacity: 1; transform: none; } }
-// .animate-fade-in { animation: fade-in 0.18s cubic-bezier(.4,0,.2,1) both; }

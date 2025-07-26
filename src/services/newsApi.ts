@@ -1,10 +1,10 @@
 import axios from "axios";
 import type { NewsApiResponse, NewsSearchParams } from "../types/news";
-import { env, isApiConfigured } from "../config/env";
+import { config, isApiConfigured } from "../config/env";
 
 // Instância do Axios com configuração base
 const newsApi = axios.create({
-  baseURL: env.NEWS_API_BASE_URL,
+  baseURL: config.baseUrl,
   timeout: 10000,
   headers: {
     "Content-Type": "application/json",
@@ -12,14 +12,14 @@ const newsApi = axios.create({
 });
 
 // Interceptor para adicionar a API key automaticamente
-newsApi.interceptors.request.use((config) => {
-  if (env.NEWS_API_KEY) {
-    config.params = {
-      ...config.params,
-      apikey: env.NEWS_API_KEY,
+newsApi.interceptors.request.use((requestConfig) => {
+  if (config.apiKey) {
+    requestConfig.params = {
+      ...requestConfig.params,
+      apikey: config.apiKey,
     };
   }
-  return config;
+  return requestConfig;
 });
 
 // Interceptor para tratamento de erros
