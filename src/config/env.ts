@@ -1,8 +1,10 @@
 // Environment configuration
 export const config = {
-  // API Configuration
+  // API Configuration - Now using NestJS proxy server
   apiKey: import.meta.env.VITE_NEWS_API_KEY || "",
-  baseUrl: import.meta.env.VITE_NEWS_API_BASE_URL || "https://newsapi.org/v2",
+  baseUrl: import.meta.env.DEV
+    ? "http://localhost:3001/api"
+    : "https://your-nestjs-server.com/api", // Update this with your production server URL
 
   // Firebase Configuration
   firebase: {

@@ -1,110 +1,176 @@
-# NewsDotAI - Jornal Diário Personalizado
+# NewsDotAI
 
-Uma aplicação web moderna para curar notícias personalizadas baseadas em palavras-chave e tópicos.
+Uma aplicação React moderna para buscar e exibir notícias usando a NewsData.io API, com backend NestJS para resolver problemas de CORS.
 
-## 🚀 Funcionalidades
+## 🚀 Estrutura do Projeto
 
-- ✅ Interface moderna e responsiva com modo claro/escuro
-- ✅ Adição de palavras-chave e categorização por tópicos
-- ✅ Busca de notícias em tempo real via NewsData.io API
-- ✅ Exibição organizada de notícias por tópico
-- ✅ Design techy e minimalista
-- ✅ Persistência de preferências no localStorage
+```
+newsdotai/
+├── src/                    # Frontend React
+│   ├── components/         # Componentes React
+│   ├── pages/             # Páginas da aplicação
+│   ├── hooks/             # Custom hooks
+│   ├── services/          # Serviços de API
+│   └── types/             # Definições TypeScript
+├── server/                # Backend NestJS (Proxy API)
+│   ├── src/
+│   │   ├── news/          # Módulo de notícias
+│   │   └── main.ts        # Ponto de entrada
+│   └── package.json
+└── package.json           # Frontend package.json
+```
 
-## 🛠️ Stack Tecnológica
+## 🛠️ Tecnologias
 
-- **Frontend**: React + TypeScript
-- **Bundler**: Vite
-- **Styling**: Tailwind CSS
-- **HTTP Client**: Axios
-- **API**: NewsData.io
+### Frontend
+
+- **React 18** com TypeScript
+- **Vite** para build e desenvolvimento
+- **Tailwind CSS** para styling
+- **React Router** para navegação
+- **Firebase** para autenticação e base de dados
+
+### Backend
+
+- **NestJS** para API proxy
+- **Axios** para requisições HTTP
+- **CORS** configurado para frontend
 
 ## 📦 Instalação
 
-1. Clone o repositório
-2. Instale as dependências:
+### 1. Instalar dependências
 
-   ```bash
-   npm install
-   ```
-
-3. Configure as variáveis de ambiente:
-
-   - Copie o arquivo `.env.example` para `.env`
-   - Obtenha uma API key gratuita em [NewsData.io](https://newsdata.io/)
-   - Configure as variáveis no arquivo `.env`:
-
-     ```env
-     # API Key (obrigatória)
-     VITE_NEWSDATA_API_KEY=sua_api_key_aqui
-
-     # API Base URL (opcional - padrão: NewsData.io)
-     VITE_NEWSDATA_API_BASE_URL=https://newsdata.io/api/1/news
-     ```
-
-4. Execute o projeto:
-   ```bash
-   npm run dev
-   ```
-
-## 🎯 Como Usar
-
-1. **Adicionar Tópicos**: Digite palavras-chave (ex: "Sporting", "Bitcoin") e selecione uma categoria
-2. **Buscar Notícias**: Clique em "SEARCH NEWS" para buscar notícias relacionadas
-3. **Visualizar**: As notícias aparecem organizadas por tópico com imagens e links
-4. **Alternar Tema**: Use o botão "LIGHT/DARK" para mudar o tema
-
-## 📁 Estrutura do Projeto
-
-```
-src/
-├── components/
-│   ├── LabelTopicManager.tsx  # Componente principal
-│   └── NewsDisplay.tsx        # Exibição de notícias
-├── hooks/
-│   └── useNews.ts            # Hook para gerenciar notícias
-├── services/
-│   └── newsApi.ts           # Serviço da API de notícias
-├── types/
-│   └── news.ts              # Tipos TypeScript
-└── ...
+```bash
+# Instalar dependências do frontend e backend
+npm run install:all
 ```
 
-## 🔧 Configuração da API
+### 2. Configurar variáveis de ambiente
 
-A aplicação usa a API NewsData.io para buscar notícias. Para configurar:
+#### Frontend (.env)
 
-1. Acesse [NewsData.io](https://newsdata.io/)
-2. Crie uma conta gratuita
-3. Obtenha sua API key
-4. Configure no arquivo `.env`:
-   ```env
-   VITE_NEWSDATA_API_KEY=sua_api_key_aqui
-   VITE_NEWSDATA_API_BASE_URL=https://newsdata.io/api/1/news
-   ```
+```env
+VITE_NEWS_API_KEY=sua_chave_do_newsdata.io
+VITE_FIREBASE_API_KEY=sua_chave_firebase
+VITE_FIREBASE_AUTH_DOMAIN=seu_projeto.firebaseapp.com
+VITE_FIREBASE_PROJECT_ID=seu_projeto_id
+VITE_FIREBASE_STORAGE_BUCKET=seu_projeto.appspot.com
+VITE_FIREBASE_MESSAGING_SENDER_ID=123456789
+VITE_FIREBASE_APP_ID=1:123456789:web:abcdef
+```
 
-### Variáveis de Ambiente
+#### Backend (server/.env)
 
-| Variável                     | Obrigatória | Padrão                           | Descrição              |
-| ---------------------------- | ----------- | -------------------------------- | ---------------------- |
-| `VITE_NEWSDATA_API_KEY`      | ✅          | -                                | API key do NewsData.io |
-| `VITE_NEWSDATA_API_BASE_URL` | ❌          | `https://newsdata.io/api/1/news` | URL base da API        |
+```env
+NEWSDATA_API_KEY=sua_chave_do_newsdata.io
+```
 
-## 🎨 Design
+## 🚀 Como Executar
 
-- **Modo Escuro**: Fundo escuro com gradientes azuis/roxos
-- **Modo Claro**: Fundo claro com sombras sutis
-- **Responsivo**: Adapta-se a diferentes tamanhos de tela
-- **Animações**: Transições suaves e efeitos hover
+### Opção 1: Arrancar tudo de uma vez (Recomendado)
 
-## 🚧 Próximos Passos
+```bash
+npm run dev:full
+```
 
-- [ ] Geração de PDF com as notícias
-- [ ] Envio por email diário
-- [ ] Backend para persistir preferências
-- [ ] Mais opções de categorização
-- [ ] Filtros por data e fonte
+Isto arranca tanto o backend (porta 3001) como o frontend (porta 5173).
+
+### Opção 2: Arrancar separadamente
+
+#### Backend (Terminal 1)
+
+```bash
+npm run server:dev
+```
+
+Backend disponível em: http://localhost:3001
+
+#### Frontend (Terminal 2)
+
+```bash
+npm run dev
+```
+
+Frontend disponível em: http://localhost:5173
+
+## 🔧 Scripts Disponíveis
+
+```bash
+# Desenvolvimento
+npm run dev              # Arrancar apenas frontend
+npm run server:dev       # Arrancar apenas backend
+npm run dev:full         # Arrancar frontend + backend
+
+# Build
+npm run build            # Build do frontend
+npm run server:build     # Build do backend
+
+# Deploy
+npm run deploy           # Deploy para GitHub Pages
+
+# Instalação
+npm run install:all      # Instalar dependências de frontend + backend
+```
+
+## 🌐 Endpoints da API
+
+### Backend NestJS (Proxy)
+
+- `GET /api/news` - Buscar notícias da NewsData.io
+  - Parâmetros: `q`, `language`, `country`, `category`, `page`
+
+### Exemplos de uso
+
+```bash
+# Notícias de desporto em Portugal
+curl "http://localhost:3001/api/news?country=pt&category=sports"
+
+# Notícias sobre Sporting CP
+curl "http://localhost:3001/api/news?q=SportingCP&language=pt"
+```
+
+## 🔐 Configuração do Firebase
+
+1. Criar projeto no [Firebase Console](https://console.firebase.google.com/)
+2. Ativar Authentication e Firestore
+3. Configurar regras de segurança do Firestore
+4. Adicionar as variáveis de ambiente no `.env`
+
+## 📱 Funcionalidades
+
+- ✅ Autenticação com Firebase
+- ✅ Busca de notícias por tópicos
+- ✅ Tema claro/escuro
+- ✅ Gestão de tópicos pessoais
+- ✅ Proxy API para resolver CORS
+- ✅ Interface responsiva
+- ✅ Deploy automático para GitHub Pages
+
+## 🚀 Deploy
+
+### GitHub Pages
+
+```bash
+npm run deploy
+```
+
+### Backend (Opcional)
+
+O backend pode ser deployado em:
+
+- **Render**
+- **Railway**
+- **Vercel**
+- **Heroku**
+
+## 🤝 Contribuição
+
+1. Fork o projeto
+2. Criar branch para feature (`git checkout -b feature/AmazingFeature`)
+3. Commit as mudanças (`git commit -m 'Add some AmazingFeature'`)
+4. Push para a branch (`git push origin feature/AmazingFeature`)
+5. Abrir Pull Request
 
 ## 📄 Licença
 
-MIT
+Este projeto está sob a licença MIT. Ver o ficheiro `LICENSE` para mais detalhes.

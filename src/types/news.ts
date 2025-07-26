@@ -29,12 +29,12 @@ export interface NewsArticle {
 export interface NewsApiResponse {
   status: string;
   totalResults: number;
-  results: NewsArticle[];
+  results: NewsArticle[]; // NewsData.io retorna 'results' em vez de 'articles'
   nextPage?: string;
 }
 
 export interface NewsSearchParams {
-  q: string;
+  q?: string; // Opcional para NewsData.io
   language?: string;
   country?: string;
   category?: string;

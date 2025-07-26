@@ -9,8 +9,13 @@
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "predeploy": "npm run build",
-    "deploy": "gh-pages -d dist"
+    "predeploy": "npm run build -- --mode production",
+    "deploy": "gh-pages -d dist",
+    "server:dev": "cd server && npm run start:dev",
+    "server:build": "cd server && npm run build",
+    "server:start": "cd server && npm run start",
+    "dev:full": "concurrently \"npm run server:dev\" \"npm run dev\"",
+    "install:all": "npm install && cd server && npm install"
   },
   "dependencies": {
     "@tailwindcss/postcss": "^4.1.11",
@@ -29,6 +34,7 @@
     "@types/react-router-dom": "^5.3.3",
     "@vitejs/plugin-react": "^4.6.0",
     "autoprefixer": "^10.4.21",
+    "concurrently": "^8.2.2",
     "eslint": "^9.30.1",
     "eslint-plugin-react-hooks": "^5.2.0",
     "eslint-plugin-react-refresh": "^0.4.20",

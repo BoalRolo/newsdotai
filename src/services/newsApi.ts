@@ -11,17 +11,6 @@ const newsApi = axios.create({
   },
 });
 
-// Interceptor para adicionar a API key automaticamente
-newsApi.interceptors.request.use((requestConfig) => {
-  if (config.apiKey) {
-    requestConfig.params = {
-      ...requestConfig.params,
-      apikey: config.apiKey,
-    };
-  }
-  return requestConfig;
-});
-
 // Interceptor para tratamento de erros
 newsApi.interceptors.response.use(
   (response) => {
@@ -34,6 +23,9 @@ newsApi.interceptors.response.use(
     if (error.response?.status === 401) {
       throw new Error("Invalid API key. Please check your configuration.");
     }
+    if (error.response?.status === 422) {
+      throw new Error("Invalid parameters. Please check your search criteria.");
+    }
     throw new Error("Failed to fetch news. Please try again.");
   }
 );
@@ -44,9 +36,15 @@ export const newsService = {
    */
   async searchNews(params: NewsSearchParams): Promise<NewsApiResponse> {
     try {
-      const response = await newsApi.get("", {
+      const response = await newsApi.get("/news", {
         params: {
-          q: params.q,
+          ...params,
+          // Garantir que só enviamos parâmetros válidos para NewsData.io
+          ...(params.q && { q: params.q }),
+          ...(params.language && { language: params.language }),
+          ...(params.country && { country: params.country }),
+          ...(params.category && { category: params.category }),
+          ...(params.page && { page: params.page }),
         },
       });
 
@@ -69,7 +67,7 @@ export const newsService = {
         const result = {
           label,
           topic,
-          articles: response.results || [],
+          articles: response.results || [], // NewsData.io retorna 'results'
         };
 
         return result;
