@@ -7,13 +7,36 @@ dotenv.config();
 
 // Inicializar Firebase Admin se ainda não estiver inicializado
 if (!admin.apps.length) {
-  admin.initializeApp({
-    credential: admin.credential.cert({
-      projectId: process.env.FIREBASE_PROJECT_ID,
-      clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-      privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
-    }),
-  });
+  try {
+    console.log('[Firebase] Initializing Firebase Admin...');
+    console.log('[Firebase] Project ID:', process.env.FIREBASE_PROJECT_ID);
+    console.log('[Firebase] Client Email:', process.env.FIREBASE_CLIENT_EMAIL);
+
+    const privateKey = process.env.FIREBASE_PRIVATE_KEY;
+    if (!privateKey) {
+      throw new Error('FIREBASE_PRIVATE_KEY is not set');
+    }
+
+    // Garantir que a chave privada está formatada corretamente
+    const formattedPrivateKey = privateKey
+      .replace(/\\n/g, '\n')
+      .replace(/"/g, '')
+      .trim();
+
+    console.log('[Firebase] Private key length:', formattedPrivateKey.length);
+
+    admin.initializeApp({
+      credential: admin.credential.cert({
+        projectId: process.env.FIREBASE_PROJECT_ID,
+        clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+        privateKey: formattedPrivateKey,
+      }),
+    });
+    console.log('[Firebase] Firebase Admin initialized successfully');
+  } catch (error) {
+    console.error('[Firebase] Error initializing Firebase Admin:', error);
+    throw error;
+  }
 }
 
 const db = admin.firestore();
