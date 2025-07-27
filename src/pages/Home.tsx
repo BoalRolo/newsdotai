@@ -113,11 +113,8 @@ const Home: React.FC = () => {
             alt="AI Illustration"
             className="max-w-md w-full drop-shadow-2xl rounded-3xl border-4 border-blue-900/20 bg-white/10 dark:bg-slate-800/30 transition-all duration-500"
             onError={(e) => {
-              // Verificar se o elemento ainda existe antes de tentar aceder
-              if (e.currentTarget) {
-                // Fallback para imagem única se as específicas não existirem
+              if (e.currentTarget && e.currentTarget.src !== aiNews) {
                 e.currentTarget.src = aiNews;
-                // Se nem a imagem única existir, usa placeholder
                 e.currentTarget.onerror = () => {
                   if (e.currentTarget) {
                     e.currentTarget.src =
