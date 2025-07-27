@@ -8,9 +8,6 @@ dotenv.config();
 // Inicializar Firebase Admin se ainda não estiver inicializado
 if (!admin.apps.length) {
   try {
-    console.log('[Firebase] Initializing Firebase Admin...');
-    console.log('[Firebase] Project ID:', process.env.FIREBASE_PROJECT_ID);
-    console.log('[Firebase] Client Email:', process.env.FIREBASE_CLIENT_EMAIL);
 
     const privateKey = process.env.FIREBASE_PRIVATE_KEY;
     if (!privateKey) {

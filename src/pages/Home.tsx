@@ -104,17 +104,22 @@ const Home: React.FC = () => {
         </div>
         <div className="flex-1 flex justify-center items-center w-full max-w-xl">
           <img
-            src={isDarkMode ? "/ai-news-dark.png" : "/ai-news-light.png"}
+            src={isDarkMode ? "./ai-news-dark.png" : "./ai-news-light.png"}
             alt="AI Illustration"
             className="max-w-md w-full drop-shadow-2xl rounded-3xl border-4 border-blue-900/20 bg-white/10 dark:bg-slate-800/30 transition-all duration-500"
             onError={(e) => {
-              // Fallback para imagem única se as específicas não existirem
-              e.currentTarget.src = "/ai-news.png";
-              // Se nem a imagem única existir, usa placeholder
-              e.currentTarget.onerror = () => {
-                e.currentTarget.src =
-                  "https://placehold.co/600x400?text=AI+News";
-              };
+              // Verificar se o elemento ainda existe antes de tentar aceder
+              if (e.currentTarget) {
+                // Fallback para imagem única se as específicas não existirem
+                e.currentTarget.src = "./ai-news.png";
+                // Se nem a imagem única existir, usa placeholder
+                e.currentTarget.onerror = () => {
+                  if (e.currentTarget) {
+                    e.currentTarget.src =
+                      "https://placehold.co/600x400?text=AI+News";
+                  }
+                };
+              }
             }}
           />
         </div>
