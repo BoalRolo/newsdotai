@@ -3,9 +3,10 @@ import { Link } from "react-router-dom";
 import { useTheme } from "../components/layout/ThemeContext";
 
 // Importar imagens
-import aiNewsDark from "/ai-news-dark.png";
-import aiNewsLight from "/ai-news-light.png";
-import aiNews from "/ai-news.png";
+const base = import.meta.env.BASE_URL || "/";
+const aiNewsDark = base + "ai-news-dark.png";
+const aiNewsLight = base + "ai-news-light.png";
+const aiNews = base + "ai-news.png";
 
 function Feature({ icon, label }: { icon: React.ReactNode; label: string }) {
   return (
