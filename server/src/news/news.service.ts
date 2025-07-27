@@ -8,7 +8,6 @@ dotenv.config();
 // Inicializar Firebase Admin se ainda não estiver inicializado
 if (!admin.apps.length) {
   try {
-
     const privateKey = process.env.FIREBASE_PRIVATE_KEY;
     if (!privateKey) {
       throw new Error('FIREBASE_PRIVATE_KEY is not set');
@@ -19,8 +18,6 @@ if (!admin.apps.length) {
       .replace(/\\n/g, '\n')
       .replace(/"/g, '')
       .trim();
-
-    console.log('[Firebase] Private key length:', formattedPrivateKey.length);
 
     admin.initializeApp({
       credential: admin.credential.cert({
@@ -113,7 +110,6 @@ export class NewsService {
   // Buscar notícias guardadas de um utilizador
   async getStoredNews(userId: string, filters: any = {}) {
     try {
-      console.log('[getStoredNews] userId:', userId, 'filters:', filters);
       let query: any = db.collection('users').doc(userId).collection('news');
 
       if (filters.topicId) {
@@ -148,28 +144,6 @@ export class NewsService {
         }
       });
 
-      console.log(
-        `[getStoredNews] Found ${news.length} news for user ${userId} with filters`,
-        filters,
-      );
-      console.log(
-        `[getStoredNews] Available topicIds in news:`,
-        Array.from(uniqueTopicIds),
-      );
-      if (filters.topicId) {
-        console.log(
-          `[getStoredNews] Filter topicId: "${filters.topicId}" (type: ${typeof filters.topicId})`,
-        );
-        console.log(
-          `[getStoredNews] Filter topicId exists in available topics:`,
-          uniqueTopicIds.has(filters.topicId),
-        );
-      } else {
-        console.log(
-          `[getStoredNews] No filters applied - all available topicIds:`,
-          Array.from(uniqueTopicIds),
-        );
-      }
       return news;
     } catch (error) {
       console.error('[getStoredNews] Error:', error, 'filters:', filters);

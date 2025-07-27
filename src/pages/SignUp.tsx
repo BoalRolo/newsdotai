@@ -41,16 +41,8 @@ const SignUp: React.FC = () => {
     let active = true;
     setUsernameStatus("checking");
     const check = setTimeout(async () => {
-      console.log(
-        "CHECKING AVAILABILITY FOR:",
-        username,
-        "(lowercased:",
-        username.toLowerCase(),
-        ")"
-      );
       // Verificação case-insensitive
       const ref = doc(db, "usernames", username.toLowerCase());
-      console.log("Checking username", username);
       const snap = await getDoc(ref);
       if (!active) return;
       setUsernameStatus(snap.exists() ? "taken" : "available");
@@ -179,7 +171,6 @@ const SignUp: React.FC = () => {
                     placeholder="Username"
                     value={username.toLowerCase()}
                     onChange={(e) => {
-                      console.log("USERNAME INPUT:", e.target.value);
                       setUsername(e.target.value);
                     }}
                     className={`w-full px-4 py-3 rounded-xl border-2 transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-blue-500/20 ${

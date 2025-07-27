@@ -33,7 +33,6 @@ export class NewsController {
       topicLabel: string;
     },
   ) {
-    console.log('Storing news for user:', body.articles);
     const { userId, articles, topicId, topicLabel } = body;
     return this.newsService.storeNewsForUser(
       userId,
@@ -46,12 +45,7 @@ export class NewsController {
   // Buscar notícias guardadas de um utilizador
   @Get('feed/:userId')
   async getStoredNews(@Param('userId') userId: string, @Query() filters: any) {
-    console.log(
-      '[getStoredNews] Route accessed with userId:',
-      userId,
-      'filters:',
-      filters,
-    );
+
     return this.newsService.getStoredNews(userId, filters);
   }
 

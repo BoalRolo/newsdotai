@@ -5,7 +5,7 @@ import tailwindcss from "@tailwindcss/vite";
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), "");
   return {
-    base: env.VITE_BASE || "/",
+    base: mode === "production" ? "/newsdotai/" : env.VITE_BASE || "/",
     plugins: [react(), tailwindcss()],
   };
 });
